@@ -1,0 +1,14 @@
+{% extends 'base.html' %} {% block content %}
+<h2>Report a Case</h2>
+<form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  <label for="description">Case Description:</label>
+  <textarea name="description" required></textarea>
+
+  <label for="evidence_file">Upload Evidence (optional):</label>
+  <input type="file" name="evidence_file" />
+
+  <button type="submit">Report Case</button>
+</form>
+
+{% endblock %}

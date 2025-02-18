@@ -1,0 +1,18 @@
+{% extends 'base.html' %} {% block content %}
+<h2>Admin Summary Report</h2>
+
+<div class="card bg-info text-white mb-3">
+  <div class="card-body">
+    <h4>Total Cases: {{ total_cases }}</h4>
+    <h4>Total Survivors: {{ total_survivors }}</h4>
+    <h4>Total Service Providers: {{ total_providers }}</h4>
+    <h4>Resolved Cases: {{ resolved_cases }}</h4>
+    <h4>Pending Cases: {{ pending_cases }}</h4>
+  </div>
+</div>
+
+<a href="{% url 'case_statistics' %}" class="btn btn-primary"
+  >View Detailed Report</a
+>
+
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %} {% block content %}
+<h2>Admin Dashboard</h2>
+
+<!-- Summary Cards -->
+<div class="row">
+  <div class="col-md-4">
+    <div class="card bg-primary text-white">
+      <div class="card-body">
+        <h5>Total Cases: {{ total_cases }}</h5>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card bg-success text-white">
+      <div class="card-body">
+        <h5>Resolved Cases: {{ resolved_cases }}</h5>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card bg-danger text-white">
+      <div class="card-body">
+        <h5>Pending Cases: {{ pending_cases }}</h5>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Case Status Chart -->
+<div class="card mt-4">
+  <div class="card-body">
+    <h4>Cases by Status</h4>
+    <canvas id="statusChart"></canvas>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var ctx = document.getElementById("statusChart").getContext("2d");
+
+    var caseStatusChart = new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: JSON.parse("{{ cases_by_status|safe|escapejs }}").map(
+          (item) => item.status
+        ),
+        datasets: [
+          {
+            label: "Cases by Status",
+            data: JSON.parse("{{ cases_by_status|safe|escapejs }}").map(
+              (item) => item.count
+            ),
+            backgroundColor: ["blue", "green", "red"],
+            borderColor: ["white", "white", "white"],
+            borderWidth: 1,
+          },
+        ],
+      },
+    });
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'base.html' %} {% block content %}
+<h2>Assign Case</h2>
+<form method="POST">
+  {% csrf_token %}
+  <label>Select Service Provider:</label>
+  <select name="provider">
+    {% for provider in providers %}
+    <option value="{{ provider.id }}">{{ provider.username }}</option>
+    {% endfor %}</select
+  ><br />
+  <button type="submit">Assign Case</button>
+</form>
+{% endblock %}

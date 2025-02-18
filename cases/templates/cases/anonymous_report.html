@@ -1,0 +1,9 @@
+{% extends 'base.html' %} {% block content %}
+<h2>Report a Case Anonymously</h2>
+<form method="POST">
+  {% csrf_token %}
+  <label>Description:</label>
+  <textarea name="description" required></textarea><br />
+  <button type="submit">Submit Report</button>
+</form>
+{% endblock %}

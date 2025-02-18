@@ -1,0 +1,25 @@
+{% extends 'base.html' %} {% block content %}
+<h2>Cases</h2>
+<table border="1">
+  <tr>
+    <th>ID</th>
+    <th>Description</th>
+    <th>Status</th>
+    <th>Date Reported</th>
+    <th>Evidence</th>
+  </tr>
+  {% for case in cases %}
+  <tr>
+    <td><a href="{% url 'case_detail' case.id %}">{{ case.id }}</a></td>
+    <td>{{ case.description }}</td>
+    <td>{{ case.status }}</td>
+    <td>{{ case.date_reported }}</td>
+    <td>
+      {% if case.evidence_file %}
+      <a href="{{ case.evidence_file.url }}" target="_blank">View Evidence</a>
+      {% else %} No Evidence {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

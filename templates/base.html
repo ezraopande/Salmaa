@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SARN GBV Management System</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="{% url 'dashboard' %}">SARN GBV</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarNav"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          {% if user.is_authenticated %}
+          <!-- Cases (Only for Providers & Law Enforcement) -->
+          {% if user.role in "provider law_enforcement" %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'case_list' %}">Cases</a>
+          </li>
+          {% endif %}
+
+          <!-- Notifications -->
+          <!-- Notifications -->
+          <!-- Notifications -->
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'notifications_list' %}">
+              Notifications ({{ unread_notifications_count }})
+            </a>
+          </li>
+
+          <!-- Audit Logs (Only for Law Enforcement) -->
+          {% if user.role == "law_enforcement" %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'audit_logs' %}">Audit Logs</a>
+          </li>
+          {% endif %}
+
+          <!-- Logged-in User Info -->
+          <li class="nav-item dropdown">
+            <a
+              class="nav-link dropdown-toggle"
+              href="#"
+              id="userDropdown"
+              role="button"
+              data-bs-toggle="dropdown"
+            >
+              {{ user.username }}
+            </a>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item" href="{% url 'logout' %}">Logout</a>
+              </li>
+            </ul>
+          </li>
+          {% else %}
+          <!-- Show Login if Not Logged In -->
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'login' %}">Login</a>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container mt-4">{% block content %}{% endblock %}</div>
+  </body>
+</html>

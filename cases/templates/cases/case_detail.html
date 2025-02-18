@@ -1,0 +1,29 @@
+{% extends 'base.html' %} {% block content %}
+<h2>Case Details</h2>
+<p><strong>ID:</strong> {{ case.id }}</p>
+<p><strong>Description:</strong> {{ case.description }}</p>
+<p><strong>Status:</strong> {{ case.status }}</p>
+<p><strong>Date Reported:</strong> {{ case.date_reported }}</p>
+
+{% if case.assigned_provider %}
+<p><strong>Assigned Provider:</strong> {{ case.assigned_provider.username }}</p>
+{% else %}
+<p><strong>Assigned Provider:</strong> Not Assigned</p>
+{% endif %} {% if case.evidence_file %}
+<p>
+  <strong>Evidence:</strong>
+  <a href="{{ case.evidence_file.url }}" target="_blank">View Evidence</a>
+</p>
+{% else %}
+<p><strong>Evidence:</strong> No Evidence Available</p>
+{% endif %}
+
+<!-- Law Enforcement Can Assign Provider -->
+{% if user.role == "law_enforcement" and not case.assigned_provider %}
+<a href="{% url 'assign_case' case.id %}" class="btn btn-primary"
+  >Assign Provider</a
+>
+{% endif %}
+
+<a href="{% url 'case_list' %}" class="btn btn-secondary">Back to Cases</a>
+{% endblock %}

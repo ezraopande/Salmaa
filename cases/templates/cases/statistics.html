@@ -1,0 +1,81 @@
+{% extends 'base.html' %} {% block content %}
+<h2>Case Statistics</h2>
+
+<!-- Total Cases -->
+<div class="card bg-info text-white mb-3">
+  <div class="card-body">
+    <h4 class="card-title">Total Cases: {{ total_cases }}</h4>
+  </div>
+</div>
+<a href="{% url 'export_case_report_pdf' %}" class="btn btn-danger"
+  >Download PDF</a
+>
+<a href="{% url 'export_case_report_excel' %}" class="btn btn-success"
+  >Download Excel</a
+>
+
+<form method="GET">
+    <label>Start Date:</label>
+    <input type="date" name="start_date" value="{{ start_date }}"><br>
+    
+    <label>End Date:</label>
+    <input type="date" name="end_date" value="{{ end_date }}"><br>
+
+    <button type="submit" class="btn btn-primary">Filter</button>
+</form>
+
+<!-- Case Status Breakdown -->
+<div class="card mb-3">
+  <div class="card-body">
+    <h4 class="card-title">Cases by Status</h4>
+    <ul class="list-group">
+      {% for item in case_status_counts %}
+      <li class="list-group-item">
+        {{ item.status|title }}: <strong>{{ item.count }}</strong>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+<!-- Case Trends Chart -->
+<div class="card">
+  <div class="card-body">
+    <h4 class="card-title">Cases Reported Per Month</h4>
+    <canvas id="caseChart"></canvas>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var ctx = document.getElementById("caseChart").getContext("2d");
+    var caseChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: JSON.parse("{{ months|escapejs }}"), // Convert JSON back to JavaScript array
+        datasets: [
+          {
+            label: "Cases Per Month",
+            data: JSON.parse("{{ case_counts|escapejs }}"),
+            borderColor: "rgba(75, 192, 192, 1)",
+            backgroundColor: "rgba(75, 192, 192, 0.2)",
+            borderWidth: 2,
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+          },
+        },
+      },
+    });
+  });
+</script>
+{% endblock %}
