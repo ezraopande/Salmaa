@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Assign Case - SARN GBV Management System{% endblock %}
+{% block title %}Change Case Status - SARN GBV Management System{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -9,13 +9,13 @@
             <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
             <li class="breadcrumb-item"><a href="{% url 'case_list' %}">Cases</a></li>
             <li class="breadcrumb-item"><a href="{% url 'case_detail' case.id %}">Case #{{ case.id }}</a></li>
-            <li class="breadcrumb-item active">Assign Case</li>
+            <li class="breadcrumb-item active">Change Status</li>
         </ol>
     </nav>
 
     <div class="card">
         <div class="card-header">
-            <h5 class="mb-0">Assign Case #{{ case.id }}</h5>
+            <h5 class="mb-0">Change Status for Case #{{ case.id }}</h5>
         </div>
         <div class="card-body">
             <div class="row">
@@ -37,7 +37,7 @@
                                 </span>
                             </dd>
 
-                            <dt class="col-sm-3">Currently Assigned</dt>
+                            <dt class="col-sm-3">Assigned To</dt>
                             <dd class="col-sm-9">
                                 {% if case.assigned_provider %}
                                     {{ case.assigned_provider.get_full_name }}
@@ -48,7 +48,7 @@
                         </dl>
                     </div>
 
-                    <!-- Assignment Form -->
+                    <!-- Status Change Form -->
                     <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
                         
@@ -61,59 +61,70 @@
                         {% endif %}
 
                         <div class="mb-3">
-                            <label for="provider" class="form-label">Assign to Provider</label>
-                            <select name="assigned_provider" id="provider" class="form-select" required>
-                                <option value="">Select a provider...</option>
-                                {% for provider in providers %}
-                                <option value="{{ provider.id }}" {% if provider.id == case.assigned_provider.id %}selected{% endif %}>
-                                    {{ provider.username }} (Current Cases: {{ provider.assigned_cases.count }})
+                            <label for="status" class="form-label">New Status</label>
+                            <select name="status" id="status" class="form-select" required>
+                                <option value="">Select new status...</option>
+                                {% for status_value, status_label in status_choices %}
+                                <option value="{{ status_value }}" {% if status_value == case.status %}selected{% endif %}>
+                                    {{ status_label }}
                                 </option>
                                 {% endfor %}
                             </select>
-                            {% if form.assigned_provider.errors %}
+                            {% if form.status.errors %}
                             <div class="invalid-feedback">
-                                {{ form.assigned_provider.errors|join:", " }}
+                                {{ form.status.errors|join:", " }}
                             </div>
                             {% endif %}
                         </div>
 
                         <div class="mb-3">
-                            <label for="notes" class="form-label">Assignment Notes</label>
-                            <textarea name="notes" id="notes" class="form-control" rows="3" 
-                                    placeholder="Add any relevant notes about this assignment..."></textarea>
+                            <label for="status_notes" class="form-label">Status Change Notes</label>
+                            <textarea name="status_notes" id="status_notes" class="form-control" rows="3" required
+                                    placeholder="Provide reason for status change..."></textarea>
+                            {% if form.status_notes.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.status_notes.errors|join:", " }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="notify_reporter" id="notify_reporter" checked>
+                                <label class="form-check-label" for="notify_reporter">
+                                    Notify reporter about this status change
+                                </label>
+                            </div>
                         </div>
 
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'case_detail' case.id %}" class="btn btn-outline-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Assign Case</button>
+                            <button type="submit" class="btn btn-primary">Update Status</button>
                         </div>
                     </form>
                 </div>
 
                 <div class="col-md-4">
-                    <!-- Provider Workload -->
+                    <!-- Status History -->
                     <div class="card">
                         <div class="card-header">
-                            <h6 class="mb-0">Provider Workload</h6>
+                            <h6 class="mb-0">Status History</h6>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Provider</th>
-                                            <th>Active Cases</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for provider in providers %}
-                                        <tr>
-                                            <td>{{ provider.username }}</td>
-                                            <td>{{ provider.assigned_cases.count }}</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
+                            <div class="timeline">
+                                {% for status_change in status_history %}
+                                <div class="timeline-item mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="badge {% if status_change.status == 'pending' %}bg-warning{% elif status_change.status == 'under_investigation' %}bg-info{% else %}bg-success{% endif %}">
+                                            {{ status_change.get_status_display }}
+                                        </span>
+                                        <small class="text-muted">{{ status_change.date|date:"M d, Y" }}</small>
+                                    </div>
+                                    <p class="mb-0 mt-1">{{ status_change.notes }}</p>
+                                </div>
+                                {% empty %}
+                                <p class="text-muted mb-0">No status changes recorded</p>
+                                {% endfor %}
                             </div>
                         </div>
                     </div>

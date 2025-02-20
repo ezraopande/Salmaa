@@ -1,5 +1,9 @@
 from django.contrib.auth.decorators import login_required
-
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import UpdateView
+from django.contrib import messages
+from django.db import transaction
+from .forms import CaseAssignmentForm, StatusChangeForm
 from users.models import User
 from .models import Case
 from django.shortcuts import render, redirect, get_object_or_404
@@ -53,54 +57,6 @@ def case_list(request):
         cases = Case.objects.filter(reporter=request.user)
     return render(request, 'cases/case_list.html', {'cases': cases})
 
-@login_required
-def update_case_status(request, case_id):
-    if request.user.role not in ["provider", "law_enforcement"]:
-        return redirect('dashboard')
-
-    case = get_object_or_404(Case, id=case_id)
-
-    if request.method == "POST":
-        new_status = request.POST["status"]
-        case.status = new_status
-        case.save()
-
-        # Send notification to the case reporter
-        Notification.objects.create(
-            user=case.reporter,
-            case=case,
-            message=f"Your case status has been updated to '{new_status}'."
-        )
-
-        return redirect('case_list')
-
-    return render(request, 'cases/update_case_status.html', {'case': case})
-
-
-
-@login_required
-def assign_case(request, case_id):
-    if request.user.role != "law_enforcement":
-        return redirect('dashboard')  # Restrict to law enforcement only
-
-    case = get_object_or_404(Case, id=case_id)
-    providers = User.objects.filter(role="provider")  # Fetch service providers
-
-    if request.method == "POST":
-        provider_id = request.POST["provider"]
-        case.assigned_provider = get_object_or_404(User, id=provider_id)
-        case.status = "under_investigation"
-        case.save()
-
-        # Log the assignment
-        AuditLog.objects.create(
-            user=request.user,
-            action=f"Assigned case {case.id} to {case.assigned_provider.username}"
-        )
-
-        return redirect('case_list')
-
-    return render(request, 'cases/assign_case.html', {'case': case, 'providers': providers})
 
 def anonymous_report_case(request):
     if request.method == "POST":
@@ -111,19 +67,12 @@ def anonymous_report_case(request):
     return render(request, 'cases/anonymous_report.html')
 
 
-
-
-
-
 def case_statistics(request):
     if request.user.role not in ["law_enforcement", "provider"]:
         raise PermissionDenied("You are not authorized to view this report.")
     
     total_cases = Case.objects.count()
     return render(request, 'cases/statistics.html', {"total_cases": total_cases})
-
-
-
 
 @login_required
 def case_detail(request, case_id):
@@ -187,3 +136,97 @@ def admin_summary_report(request):
         "resolved_cases": resolved_cases,
         "pending_cases": pending_cases,
     })
+
+class AssignCaseView(LoginRequiredMixin, UpdateView):
+    model = Case
+    form_class = CaseAssignmentForm
+    template_name = 'cases/assign_case.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get all providers who can be assigned cases
+        context['providers'] = self.get_available_providers()
+        context['case'] = self.get_object()
+        return context
+    
+    def get_available_providers(self):
+        # This should be customized based on your User model and provider criteria
+        return User.objects.filter(role='provider', is_active=True)
+    
+    def form_valid(self, form):
+        case = self.get_object()
+        provider = form.cleaned_data['assigned_provider']
+        notes = form.cleaned_data.get('notes', '')
+        
+        with transaction.atomic():
+            # Update case assignment
+            case.assigned_provider = provider
+            if case.status == 'pending':
+                case.status = 'under_investigation'
+            case.save()
+            
+            # Create assignment record
+            '''CaseAssignment.objects.create(
+                case=case,
+                provider=provider,
+                assigned_by=self.request.user,
+                notes=notes
+            )'''
+            
+            # Optionally notify the provider
+            self.notify_provider(case, provider)
+        
+        messages.success(self.request, f'Case #{case.id} has been assigned to {provider.get_full_name()}')
+        return redirect('case_detail', case_id=case.id)
+    
+    def notify_provider(self, case, provider):
+        # Implement provider notification logic here
+        # This could be email, SMS, or internal notification
+        pass
+
+class ChangeCaseStatusView(LoginRequiredMixin, UpdateView):
+    model = Case
+    form_class = StatusChangeForm
+    template_name = 'cases/update_case_status.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['case'] = self.get_object()
+        context['status_choices'] = Case.STATUS_CHOICES
+        # context['status_history'] = self.get_status_history()
+        return context
+    
+    '''def get_status_history(self):
+        return StatusChange.objects.filter(
+            case=self.get_object()
+        ).order_by('-date')'''
+    
+    def form_valid(self, form):
+        case = self.get_object()
+        new_status = form.cleaned_data['status']
+        notes = form.cleaned_data['status_notes']
+        notify_reporter = form.cleaned_data.get('notify_reporter', False)
+        
+        with transaction.atomic():
+            # Create status change record
+            '''StatusChange.objects.create(
+                case=case,
+                status=new_status,
+                notes=notes,
+                changed_by=self.request.user
+            )'''
+            
+            # Update case status
+            case.status = new_status
+            case.save()
+            
+            if notify_reporter:
+                self.notify_reporter(case, new_status, notes)
+        
+        messages.success(self.request, f'Status for Case #{case.id} has been updated to {case.get_status_display()}')
+        return redirect('case_detail', case_id=case.id)
+    
+    def notify_reporter(self, case, new_status, notes):
+        # Implement reporter notification logic here
+        # This could be email, SMS, or internal notification
+        pass
