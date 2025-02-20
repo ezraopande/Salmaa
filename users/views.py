@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import login_required
@@ -66,6 +66,7 @@ def register(request):
         user = User(username=username, email=email, role=role, phone=phone, address=address)
         user.set_password(password1)  # Correctly hash the password
         user.save()
+        print('--------------------saved---------------')
 
         # Authenticate and log in the user
         user = authenticate(request, username=username, password=password1)
@@ -94,7 +95,9 @@ def user_login(request):
 
     return render(request, 'users/login.html')
 
-
+def logout_user(request):
+    logout(request) 
+    return redirect('login')
 
 @login_required
 def admin_dashboard(request):

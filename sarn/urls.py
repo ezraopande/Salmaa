@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth.decorators import login_required
-from users.views import admin_dashboard, dashboard, home_redirect, register, user_login
+from users.views import admin_dashboard, dashboard, home_redirect, register, user_login, logout_user
 from cases.views import (
     admin_summary_report, anonymous_report_case, assign_case, case_detail, 
     case_statistics, export_case_report_excel, export_case_report_pdf, 
@@ -23,7 +23,7 @@ urlpatterns = [
     path('', home_redirect, name='home'),
     path('register/', register, name='register'),
     path('login/', user_login, name='login'),
-    path('logout/', LogoutView.as_view(), name='logout'),
+    path('logout/', logout_user, name='logout'),
 
     # Dashboards
     path('dashboard/', login_required(dashboard), name='dashboard'),
