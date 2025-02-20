@@ -6,7 +6,7 @@ from users.views import admin_dashboard, dashboard, home_redirect, register, use
 from cases.views import (
     admin_summary_report, anonymous_report_case, assign_case, case_detail, 
     case_statistics, export_case_report_excel, export_case_report_pdf, 
-    report_case, case_list
+    report_case, case_list, update_case_status
 )
 from communication.views import send_message
 from notifications.views import notifications_list, mark_notification_as_read
@@ -34,6 +34,7 @@ urlpatterns = [
     path('cases/', login_required(case_list), name='case_list'),
     path('cases/<int:case_id>/', login_required(case_detail), name='case_detail'),  # ✅ FIXED: Added case_detail route
     path('assign-case/<int:case_id>/', login_required(assign_case), name='assign_case'),
+    path('change_status/<int:case_id>/', login_required(update_case_status), name='change_status'),
 
     # Notifications
     path('notifications/', login_required(notifications_list), name='notifications_list'),

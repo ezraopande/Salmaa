@@ -9,7 +9,7 @@ class Case(models.Model):
     ]
 
     reporter = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reported_cases")  # The person who reported the case
-    assigned_provider = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_cases")  # Service provider handling the case
+    assigned_provider = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="assigned_cases")
     description = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     date_reported = models.DateTimeField(auto_now_add=True)

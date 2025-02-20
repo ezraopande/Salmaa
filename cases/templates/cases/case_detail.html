@@ -1,29 +1,82 @@
-{% extends 'base.html' %} {% block content %}
-<h2>Case Details</h2>
-<p><strong>ID:</strong> {{ case.id }}</p>
-<p><strong>Description:</strong> {{ case.description }}</p>
-<p><strong>Status:</strong> {{ case.status }}</p>
-<p><strong>Date Reported:</strong> {{ case.date_reported }}</p>
+{% extends 'base.html' %}
 
-{% if case.assigned_provider %}
-<p><strong>Assigned Provider:</strong> {{ case.assigned_provider.username }}</p>
-{% else %}
-<p><strong>Assigned Provider:</strong> Not Assigned</p>
-{% endif %} {% if case.evidence_file %}
-<p>
-  <strong>Evidence:</strong>
-  <a href="{{ case.evidence_file.url }}" target="_blank">View Evidence</a>
-</p>
-{% else %}
-<p><strong>Evidence:</strong> No Evidence Available</p>
-{% endif %}
+{% block content %}
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'case_list' %}">Cases</a></li>
+            <li class="breadcrumb-item active">Case #{{ case.id }}</li>
+        </ol>
+    </nav>
 
-<!-- Law Enforcement Can Assign Provider -->
-{% if user.role == "law_enforcement" and not case.assigned_provider %}
-<a href="{% url 'assign_case' case.id %}" class="btn btn-primary"
-  >Assign Provider</a
->
-{% endif %}
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">Case #{{ case.id }}</h3>
+                <span class="badge {% if case.status == 'pending' %}bg-warning{% elif case.status == 'under_investigation' %}bg-info{% else %}bg-success{% endif %}">
+                    {{ case.get_status_display }}
+                </span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h5>Description</h5>
+                    <p>{{ case.description }}</p>
 
-<a href="{% url 'case_list' %}" class="btn btn-secondary">Back to Cases</a>
+                    {% if case.evidence_file %}
+                    <h5>Evidence</h5>
+                    <p>
+                        <a href="{{ case.evidence_file.url }}" class="btn btn-outline-secondary btn-sm" target="_blank">
+                            <i class="fas fa-download"></i> View Evidence File
+                        </a>
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Case Details</h5>
+                            <dl class="row">
+                                <dt class="col-sm-5">Reported By: </dt>
+                                <dd class="col-sm-7">{{ case.reporter.get_username }}</dd>
+
+                                <dt class="col-sm-5">Phone Number: </dt>
+                                <dd class="col-sm-7">{{ case.reporter.phone }}</dd>
+
+                                <dt class="col-sm-5">Date Reported: </dt>
+                                <dd class="col-sm-7">{{ case.date_reported|date:"M d, Y H:i" }}</dd>
+
+                                <dt class="col-sm-5">Assigned To: </dt>
+                                <dd class="col-sm-7">
+                                    {% if case.assigned_provider %}
+                                    {{ case.assigned_provider.get_username }}
+                                    {% else %}
+                                    <span class="text-muted">Not assigned</span>
+                                    {% endif %}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if user.role == 'law_enforcement' %}
+            <div class="mt-4">
+                <h5>Actions</h5>
+                <div class="btn-group">
+                    
+                    <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="visually-hidden">Toggle Dropdown</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{% url 'assign_case' case.id %}">Assign Case</a></li>
+                        <li><a class="dropdown-item" href="{% url 'change_status' case.id %}">Change Status</a></li>
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 {% endblock %}
