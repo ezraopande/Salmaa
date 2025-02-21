@@ -180,9 +180,22 @@ class AssignCaseView(LoginRequiredMixin, UpdateView):
         return redirect('case_detail', case_id=case.id)
     
     def notify_provider(self, case, provider):
-        # Implement provider notification logic here
-        # This could be email, SMS, or internal notification
-        pass
+        Notification.objects.create(
+            user=case.reporter,
+            case=case,
+            message=f"Your case has been assigned to {provider.username}."
+        )
+        
+        Notification.objects.create(
+            user=provider,
+            case=case,
+            message=f"You have been assigned to case #{case.id}."
+        )
+        
+        AuditLog.objects.create(
+            user=self.request.user,
+            action=f"assigned case {case.id} to {provider.username}"
+        )
 
 class ChangeCaseStatusView(LoginRequiredMixin, UpdateView):
     model = Case
@@ -227,6 +240,13 @@ class ChangeCaseStatusView(LoginRequiredMixin, UpdateView):
         return redirect('case_detail', case_id=case.id)
     
     def notify_reporter(self, case, new_status, notes):
-        # Implement reporter notification logic here
-        # This could be email, SMS, or internal notification
-        pass
+        Notification.objects.create(
+            user=case.reporter,
+            case=case,
+            message=f"Your case status has been updated to '{new_status}'."
+        )
+        
+        AuditLog.objects.create(
+            user=self.request.user,
+            action=f"changed case {case.id} status to {case.status}"
+        )

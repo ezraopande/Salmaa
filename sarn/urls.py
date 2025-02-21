@@ -1,12 +1,13 @@
 from django.contrib import admin
 from django.urls import path
-from django.contrib.auth.views import LogoutView
+from django.conf.urls.static import static
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from users.views import admin_dashboard, dashboard, home_redirect, register, user_login, logout_user
 from cases.views import (
-    admin_summary_report, anonymous_report_case, assign_case, case_detail, 
+    admin_summary_report, anonymous_report_case,case_detail, 
     case_statistics, export_case_report_excel, export_case_report_pdf, 
-    report_case, case_list, update_case_status, AssignCaseView, ChangeCaseStatusView
+    report_case, case_list, AssignCaseView, ChangeCaseStatusView
 )
 from communication.views import send_message
 from notifications.views import notifications_list, mark_notification_as_read
@@ -55,3 +56,6 @@ urlpatterns = [
     # Anonymous Reports
     path('anonymous-report/', login_required(anonymous_report_case), name='anonymous_report_case'),
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
