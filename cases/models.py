@@ -17,3 +17,38 @@ class Case(models.Model):
 
     def __str__(self):
         return f"Case {self.id} - {self.status}"
+    
+class CaseDocument(models.Model):
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="documents")
+    document = models.FileField(upload_to="case_documents/")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Document for Case {self.case.id}"
+
+class CounselingSession(models.Model):
+    survivor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="counseling_sessions")
+    counselor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sessions_conducted")
+    session_date = models.DateTimeField()
+    notes = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Counseling Session {self.id} - {self.survivor.username}"
+
+class CourtCase(models.Model):
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="court_cases")
+    court_name = models.CharField(max_length=255)
+    hearing_date = models.DateField()
+    verdict = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Court Case for {self.case.id} - {self.court_name}"
+
+class PoliceFollowUp(models.Model):
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="follow_ups")
+    officer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="police_followups")
+    update_details = models.TextField()
+    date_updated = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Follow-up on Case {self.case.id}"
