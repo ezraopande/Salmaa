@@ -1,17 +1,154 @@
-{% extends 'base.html' %} {% block content %}
-<h2>Audit Logs</h2>
-<table border="1">
-  <tr>
-    <th>User</th>
-    <th>Action</th>
-    <th>Timestamp</th>
-  </tr>
-  {% for log in logs %}
-  <tr>
-    <td>{{ log.user.username }}</td>
-    <td>{{ log.action }}</td>
-    <td>{{ log.timestamp }}</td>
-  </tr>
-  {% endfor %}
-</table>
+{% extends 'base.html' %}
+
+{% block title %}Audit Logs - SARN GBV Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>System Audit Logs</h2>
+        <div>
+            <button class="btn btn-outline-primary me-2" onclick="exportToExcel()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-excel me-2" viewBox="0 0 16 16">
+                    <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+                    <path d="M6.5 12.5v-1h3v1h-3z"/>
+                </svg>
+                Export to Excel
+            </button>
+            <button class="btn btn-outline-primary" onclick="exportToPDF()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-pdf me-2" viewBox="0 0 16 16">
+                    <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+                    <path d="M8.5 8.5v1h1v-1h-1z"/>
+                </svg>
+                Export to PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form class="row g-3" method="GET">
+                <div class="col-md-3">
+                    <label for="dateFrom" class="form-label">Date From</label>
+                    <input type="date" class="form-control" id="dateFrom" name="date_from">
+                </div>
+                <div class="col-md-3">
+                    <label for="dateTo" class="form-label">Date To</label>
+                    <input type="date" class="form-control" id="dateTo" name="date_to">
+                </div>
+                <div class="col-md-3">
+                    <label for="userFilter" class="form-label">User</label>
+                    <select class="form-select" id="userFilter" name="user">
+                        <option value="">All Users</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Audit Logs Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in audit_logs %}
+                        <tr>
+                            <td>{{ log.timestamp|date:"M d, Y H:i:s" }}</td>
+                            <td>
+                                <span class="badge bg-primary">{{ log.user.role }}</span>
+                                {{ log.user.username }}
+                            </td>
+                            <td>{{ log.action }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#logModal{{ log.id }}">
+                                    View Details
+                                </button>
+                            </td>
+                        </tr>
+                        
+                        <!-- Modal for Log Details -->
+                        <div class="modal fade" id="logModal{{ log.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Log Details</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p><strong>User:</strong> {{ log.user.get_full_name }}</p>
+                                        <p><strong>Role:</strong> {{ log.user.role }}</p>
+                                        <p><strong>Action:</strong> {{ log.action }}</p>
+                                        <p><strong>Timestamp:</strong> {{ log.timestamp|date:"M d, Y H:i:s" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4">
+                                <p class="text-muted mb-0">No audit logs found</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if audit_logs.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if audit_logs.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ audit_logs.previous_page_number }}">&laquo;</a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for i in audit_logs.paginator.page_range %}
+                    <li class="page-item {% if audit_logs.number == i %}active{% endif %}">
+                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if audit_logs.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ audit_logs.next_page_number }}">&raquo;</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function exportToExcel() {
+    // Add your Excel export logic here
+    window.location.href = "{% url 'export_audit_logs_excel' %}";
+}
+
+function exportToPDF() {
+    // Add your PDF export logic here
+    window.location.href = "{% url 'export_audit_logs_pdf' %}";
+}
+</script>
+{% endblock %}
 {% endblock %}

@@ -11,7 +11,7 @@ from cases.views import (
 )
 from communication.views import send_message
 from notifications.views import notifications_list, mark_notification_as_read
-from audit.views import audit_logs
+from audit.views import audit_logs, export_audit_logs_excel, export_audit_logs_pdf
 
 handler403 = 'sarn.views.custom_permission_denied'
 
@@ -46,6 +46,8 @@ urlpatterns = [
 
     # Reports & Audit Logs
     path('audit-logs/', login_required(audit_logs), name='audit_logs'),
+    path('audit-logs/export/excel/', export_audit_logs_excel, name='export_audit_logs_excel'),
+    path('audit-logs/export/pdf/', export_audit_logs_pdf, name='export_audit_logs_pdf'),
     path('admin-summary/', login_required(admin_summary_report), name='admin_summary_report'),
     path('case-statistics/', login_required(case_statistics), name='case_statistics'),
 
