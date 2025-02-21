@@ -9,7 +9,7 @@ from .models import Case
 from django.shortcuts import render, redirect, get_object_or_404
 from notifications.models import Notification
 from audit.models import AuditLog  # Import the AuditLog model
-
+from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from audit.models import AuditLog  # Track assignments
@@ -33,14 +33,14 @@ def report_case(request):
 
         # Notify law enforcement and providers
         recipients = User.objects.filter(role__in=["law_enforcement", "provider"]).values_list("email", flat=True)
-        send_mail(
+        '''send_mail(
             "New GBV Case Reported",
             f"A new case has been reported by {request.user.username}. Please check the system for details.",
             "admin@sarn-gbv.org",
             list(recipients),
             fail_silently=False,
-        )
-
+        )'''
+        messages.success(request, "Case reported successfully.")
         return redirect('case_list')
 
     return render(request, 'cases/report_case.html')
@@ -49,13 +49,33 @@ def report_case(request):
 
 @login_required
 def case_list(request):
+    # Determine the cases based on the user's role
     if request.user.role == "law_enforcement":
         cases = Case.objects.all()
     elif request.user.role == "provider":
         cases = Case.objects.filter(assigned_provider=request.user)
     else:
         cases = Case.objects.filter(reporter=request.user)
-    return render(request, 'cases/case_list.html', {'cases': cases})
+        
+    # Filter cases based on the query parameters
+    status_filter = request.GET.get('status')  
+    if status_filter:
+        cases = cases.filter(status=status_filter)
+
+    # Pagination
+    paginator = Paginator(cases, 10)  # Show 10 cases per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Context to be passed to the template
+    context = {
+        'cases': page_obj,
+        'status_choices': Case.STATUS_CHOICES,
+        'is_paginated': page_obj.has_other_pages(),
+        'page_obj': page_obj,
+    }
+
+    return render(request, 'cases/case_list.html', context)
 
 
 def anonymous_report_case(request):

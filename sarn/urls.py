@@ -3,14 +3,14 @@ from django.urls import path
 from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from users.views import admin_dashboard, dashboard, home_redirect, register, user_login, logout_user
+from users.views import dashboard, home_redirect, register, user_login, logout_user
 from cases.views import (
     admin_summary_report, anonymous_report_case,case_detail, 
     case_statistics, export_case_report_excel, export_case_report_pdf, 
     report_case, case_list, AssignCaseView, ChangeCaseStatusView
 )
 from communication.views import send_message
-from notifications.views import notifications_list, mark_notification_as_read
+from notifications.views import notifications_list, mark_notification_as_read, mark_all_notifications_read, clear_all_notifications
 from audit.views import audit_logs, export_audit_logs_excel, export_audit_logs_pdf
 
 handler403 = 'sarn.views.custom_permission_denied'
@@ -28,7 +28,6 @@ urlpatterns = [
 
     # Dashboards
     path('dashboard/', login_required(dashboard), name='dashboard'),
-    path('admin-dashboard/', login_required(admin_dashboard), name='admin_dashboard'),
 
     # Case Management
     path('report-case/', login_required(report_case), name='report_case'),
@@ -40,6 +39,8 @@ urlpatterns = [
     # Notifications
     path('notifications/', login_required(notifications_list), name='notifications_list'),
     path('notifications/read/<int:notification_id>/', login_required(mark_notification_as_read), name='mark_notification_as_read'),
+    path('notifications/read/all/', login_required(mark_all_notifications_read), name='mark_all_notifications_read'),
+    path('notifications/clear/all/', login_required(clear_all_notifications), name='clear_all_notifications'),
 
     # Messaging
     path('send-message/', login_required(send_message), name='send_message'),

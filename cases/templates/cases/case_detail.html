@@ -61,7 +61,7 @@
                 </div>
             </div>
 
-            {% if user.role == 'law_enforcement' %}
+            {% if user.role == 'law_enforcement' or user.role == 'provider' %}
             <div class="mt-4">
                 <h5>Actions</h5>
                 <div class="btn-group">

@@ -7,7 +7,7 @@ class User(AbstractUser):
         ('provider', 'Service Provider'),
         ('law_enforcement', 'Law Enforcement'),
     ]
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='survivor')
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
 
