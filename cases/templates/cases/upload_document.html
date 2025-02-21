@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<!-- upload_document.html -->
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'case_detail' case.id %}">Case #{{ case.id }}</a></li>
+            <li class="breadcrumb-item active">Upload Document</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Upload Case Document</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="document" class="form-label">Select Document</label>
+                    <input type="file" class="form-control" id="document" name="document" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Upload Document</button>
+                <a href="{% url 'case_detail' case.id %}" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

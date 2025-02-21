@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<!-- add_followup.html -->
+{% if user.role == 'law_enforcement' %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'case_detail' case.id %}">Case #{{ case.id }}</a></li>
+            <li class="breadcrumb-item active">Add Police Follow-up</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Add Police Follow-up</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="update_details" class="form-label">Update Details</label>
+                    {{ form.update_details }}
+                </div>
+                <button type="submit" class="btn btn-primary">Save Follow-up</button>
+                <a href="{% url 'case_detail' case.id %}" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,6 +1,6 @@
 # forms.py
 from django import forms
-from .models import Case
+from .models import Case, PoliceFollowUp, CounselingSession, CaseDocument, CourtCase
 
 class CaseAssignmentForm(forms.ModelForm):
     notes = forms.CharField(widget=forms.Textarea, required=False)
@@ -16,3 +16,23 @@ class StatusChangeForm(forms.ModelForm):
     class Meta:
         model = Case
         fields = ['status']
+        
+class PoliceFollowUpForm(forms.ModelForm):
+    class Meta:
+        model = PoliceFollowUp
+        fields = ['update_details']
+        
+class CounselingSessionForm(forms.ModelForm):
+    class Meta:
+        model = CounselingSession
+        fields = ['session_date', 'notes']
+        
+class CaseDocumentForm(forms.ModelForm):
+    class Meta:
+        model = CaseDocument
+        fields = ['document']
+        
+class CourtCaseForm(forms.ModelForm):
+    class Meta:
+        model = CourtCase
+        fields = ['court_name', 'hearing_date', 'verdict']

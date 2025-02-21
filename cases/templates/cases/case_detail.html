@@ -1,80 +1,198 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
             <li class="breadcrumb-item"><a href="{% url 'case_list' %}">Cases</a></li>
             <li class="breadcrumb-item active">Case #{{ case.id }}</li>
         </ol>
     </nav>
 
-    <div class="card">
-        <div class="card-header">
+    <!-- Case Details Card -->
+    <div class="card mb-4">
+        <div class="card-header bg-white">
             <div class="d-flex justify-content-between align-items-center">
-                <h3 class="mb-0">Case #{{ case.id }}</h3>
-                <span class="badge {% if case.status == 'pending' %}bg-warning{% elif case.status == 'under_investigation' %}bg-info{% else %}bg-success{% endif %}">
+                <h5 class="mb-0">Case Details #{{ case.id }}</h5>
+                <span class="badge {% if case.status == 'pending' %}bg-warning
+                    {% elif case.status == 'under_investigation' %}bg-info
+                    {% else %}bg-success{% endif %}">
                     {{ case.get_status_display }}
                 </span>
             </div>
         </div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-8">
-                    <h5>Description</h5>
-                    <p>{{ case.description }}</p>
-
-                    {% if case.evidence_file %}
-                    <h5>Evidence</h5>
-                    <p>
-                        <a href="{{ case.evidence_file.url }}" class="btn btn-outline-secondary btn-sm" target="_blank">
-                            <i class="fas fa-download"></i> View Evidence File
-                        </a>
+                <div class="col-md-6">
+                    <h6>Description</h6>
+                    <p class="text-muted">{{ case.description }}</p>
+                    
+                    <h6>Reporter Information</h6>
+                    <p class="text-muted">
+                        Reported by: {{ case.reporter.get_username }}<br>
+                        Date Reported: {{ case.date_reported|date:"F d, Y" }}
                     </p>
-                    {% endif %}
                 </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5>Case Details</h5>
-                            <dl class="row">
-                                <dt class="col-sm-5">Reported By: </dt>
-                                <dd class="col-sm-7">{{ case.reporter.get_username }}</dd>
-
-                                <dt class="col-sm-5">Phone Number: </dt>
-                                <dd class="col-sm-7">{{ case.reporter.phone }}</dd>
-
-                                <dt class="col-sm-5">Date Reported: </dt>
-                                <dd class="col-sm-7">{{ case.date_reported|date:"M d, Y H:i" }}</dd>
-
-                                <dt class="col-sm-5">Assigned To: </dt>
-                                <dd class="col-sm-7">
-                                    {% if case.assigned_provider %}
-                                    {{ case.assigned_provider.get_username }}
-                                    {% else %}
-                                    <span class="text-muted">Not assigned</span>
-                                    {% endif %}
-                                </dd>
-                            </dl>
+                <div class="col-md-6">
+                    <h6>Case Assignment</h6>
+                    <p class="text-muted">
+                        {% if case.assigned_provider %}
+                            Assigned to: {{ case.assigned_provider.get_username }}
+                        {% else %}
+                            Not yet assigned
+                        {% endif %}
+                    </p>
+                    {% if user.role == 'law_enforcement' or user.role == 'provider' %}
+                    <div class="mt-4">
+                        <h5>Actions</h5>
+                        <div class="btn-group">
+                            
+                            <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="visually-hidden">Toggle Dropdown</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'assign_case' case.id %}">Assign Case</a></li>
+                                <li><a class="dropdown-item" href="{% url 'change_status' case.id %}">Change Status</a></li>
+                            </ul>
                         </div>
                     </div>
+                    {% endif %}
                 </div>
             </div>
+        </div>
+    </div>
 
-            {% if user.role == 'law_enforcement' or user.role == 'provider' %}
-            <div class="mt-4">
-                <h5>Actions</h5>
-                <div class="btn-group">
-                    
-                    <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="visually-hidden">Toggle Dropdown</span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{% url 'assign_case' case.id %}">Assign Case</a></li>
-                        <li><a class="dropdown-item" href="{% url 'change_status' case.id %}">Change Status</a></li>
-                    </ul>
-                </div>
+    <!-- Action Buttons -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="btn-group" role="group">
+                {% if user.role == 'provider' %}
+                    <a href="{% url 'add_counseling_session' case.id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle"></i> Add Counseling Session
+                    </a>
+                {% endif %}
+                {% if user.role == 'law_enforcement' %}
+                    <a href="{% url 'add_court_case' case.id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle"></i> Add Court Case
+                    </a>
+                    <a href="{% url 'add_police_followup' case.id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle"></i> Add Follow-up
+                    </a>
+                {% endif %}
+                <a href="{% url 'upload_case_document' case.id %}" class="btn btn-outline-primary">
+                    <i class="bi bi-upload"></i> Upload Document
+                </a>
             </div>
+        </div>
+    </div>
+
+    <!-- Tabs for Different Sections -->
+    <ul class="nav nav-tabs mb-4" id="caseTab" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="counseling-tab" data-bs-toggle="tab" href="#counseling">
+                Counseling Sessions
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="court-tab" data-bs-toggle="tab" href="#court">
+                Court Cases
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="documents-tab" data-bs-toggle="tab" href="#documents">
+                Documents
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="followups-tab" data-bs-toggle="tab" href="#followups">
+                Police Follow-ups
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="caseTabContent">
+        <!-- Counseling Sessions Tab -->
+        <div class="tab-pane fade show active" id="counseling">
+            {% if counseling_sessions %}
+                {% for session in counseling_sessions %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                {{ session.session_date|date:"F d, Y" }}
+                            </h6>
+                            <p class="card-text">{{ session.notes }}</p>
+                            <small class="text-muted">Counselor: {{ session.counselor.get_username }}</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted">No counseling sessions recorded.</p>
+            {% endif %}
+        </div>
+
+        <!-- Court Cases Tab -->
+        <div class="tab-pane fade" id="court">
+            {% if court_cases %}
+                {% for court_case in court_cases %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                {{ court_case.court_name }} - {{ court_case.hearing_date|date:"F d, Y" }}
+                            </h6>
+                            {% if court_case.verdict %}
+                                <p class="card-text">Verdict: {{ court_case.verdict }}</p>
+                            {% else %}
+                                <p class="card-text text-muted">Pending verdict</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted">No court cases recorded.</p>
+            {% endif %}
+        </div>
+
+        <!-- Documents Tab -->
+        <div class="tab-pane fade" id="documents">
+            {% if documents %}
+                <div class="row">
+                    {% for doc in documents %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">
+                                        Uploaded on {{ doc.uploaded_at|date:"F d, Y" }}
+                                    </h6>
+                                    <a href="{{ doc.document.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                        <i class="bi bi-download"></i> Download
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">No documents uploaded.</p>
+            {% endif %}
+        </div>
+
+        <!-- Police Follow-ups Tab -->
+        <div class="tab-pane fade" id="followups">
+            {% if follow_ups %}
+                {% for followup in follow_ups %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                {{ followup.date_updated|date:"F d, Y" }}
+                            </h6>
+                            <p class="card-text">{{ followup.update_details }}</p>
+                            <small class="text-muted">Officer: {{ followup.officer.get_username }}</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted">No police follow-ups recorded.</p>
             {% endif %}
         </div>
     </div>

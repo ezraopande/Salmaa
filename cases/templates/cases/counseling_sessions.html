@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 class="mb-4">Counseling Sessions</h2>
+    
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs mb-4" id="sessionTab" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="counseling-tab" data-bs-toggle="tab" href="#upcoming">
+                Upcoming Sessions
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="court-tab" data-bs-toggle="tab" href="#past">
+                Past Sessions
+            </a>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="sessionTabContent">
+        <!-- Upcoming Sessions -->
+        <div class="tab-pane fade show active" id="upcoming">
+            <div class="row">
+                {% for session in page_obj %}
+                    {% if session.session_date > now %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Session with {{ session.survivor.username }}</h5>
+                                <p class="card-text">
+                                    <strong>Date:</strong> {{ session.session_date|date:"F d, Y" }}<br>
+                                    <strong>Time:</strong> {{ session.session_date|date:"g:i A" }}
+                                </p>
+                                {% if user.role == 'provider' %}
+                                <div class="mt-3">
+                                    <a href="#" class="btn btn-primary btn-sm">Update Session</a>
+                                    <a href="#" class="btn btn-outline-danger btn-sm">Cancel Session</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Past Sessions -->
+        <div class="tab-pane fade" id="past">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>{% if user.role == 'provider' %}Survivor{% else %}Counselor{% endif %}</th>
+                            <th>Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in page_obj %}
+                            {% if session.session_date %}
+                            <tr>
+                                <td>{{ session.session_date|date:"F d, Y" }}</td>
+                                <td>{{ session.session_date|date:"g:i A" }}</td>
+                                <td>{% if user.role == 'provider' %}{{ session.survivor.username }}{% else %}{{ session.counselor.username }}{% endif %}</td>
+                                <td>{{ session.notes|truncatechars:50 }}</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-info">View Details</a>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+
+            {% for i in page_obj.paginator.page_range %}
+                <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                </li>
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- add_counseling_session.html -->
+{% if user.role == 'provider' %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'case_detail' case.id %}">Case #{{ case.id }}</a></li>
+            <li class="breadcrumb-item active">Add Counseling Session</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Add Counseling Session</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="session_date" class="form-label">Session Date: </label>
+                    <input type="datetime" name="session_date" class="form-control" id="" >
+                </div>
+                <div class="mb-3">
+                    <label for="notes" class="form-label">Session Notes: </label>
+                    <textarea name="notes" id="notes" class="form-control" rows="3" 
+                        placeholder="Add any relevant notes about this couseling session...">
+                    </textarea>
+                        
+                </div>
+                <button type="submit" class="btn btn-primary">Save Session</button>
+                <a href="{% url 'case_detail' case.id %}" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

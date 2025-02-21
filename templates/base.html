@@ -162,6 +162,60 @@
             color: #0c5460;
             border: 1px solid #bee5eb;
         }
+        /* Custom styling for tabs */
+        .nav-tabs .nav-link {
+            color: #04223f;
+            border: 1px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.3s ease;
+        }
+
+        /* Counseling tab - Warm Blue */
+        #counseling-tab.nav-link {
+            background-color: #b7c1c9;
+        }
+        #counseling-tab.nav-link.active {
+            background-color: #2196F3;
+            color: white;
+            border-color: #2196F3;
+        }
+
+        /* Court tab - Purple */
+        #court-tab.nav-link {
+            background-color: #e99ef5;
+        }
+        #court-tab.nav-link.active {
+            background-color: #9C27B0;
+            color: white;
+            border-color: #9C27B0;
+        }
+
+        /* Documents tab - Green */
+        #documents-tab.nav-link {
+            background-color: #a1f5a8;
+        }
+        #documents-tab.nav-link.active {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        /* Follow-ups tab - Orange */
+        #followups-tab.nav-link {
+            background-color: #fad69c;
+        }
+        #followups-tab.nav-link.active {
+            background-color: #FF9800;
+            color: white;
+            border-color: #FF9800;
+        }
+
+        /* Hover effects */
+        .nav-tabs .nav-link:hover {
+            border-color: #dee2e6 #dee2e6 #fff;
+            opacity: 0.9;
+        }
+        
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -244,18 +298,30 @@
                             </a>
                         </li>
                         {% endif %}
+                        {% if user.role == "provider" %}
                         <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                Support Services
-                            </a>
-                        </li>
-                        {% if user.role == "law_enforcement" %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'audit_logs' %}">
-                                Audit Logs
+                            <a class="nav-link" href="{% url 'counseling_sessions' %}">
+                                Counseling Sessions
                             </a>
                         </li>
                         {% endif %}
+                        {% if user.role == "law_enforcement" %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'court_cases' %}">
+                                Court Cases
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'police_followups' %}">
+                                Police Follow-ups
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'case_documents' %}">
+                                Case Documents
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>

@@ -3,9 +3,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import UpdateView
 from django.contrib import messages
 from django.db import transaction
-from .forms import CaseAssignmentForm, StatusChangeForm
+from .forms import CaseAssignmentForm, CounselingSessionForm, CourtCaseForm, PoliceFollowUpForm, StatusChangeForm
 from users.models import User
-from .models import Case
+from .models import Case, CaseDocument, CounselingSession, CourtCase, PoliceFollowUp
 from django.shortcuts import render, redirect, get_object_or_404
 from notifications.models import Notification
 from audit.models import AuditLog  # Import the AuditLog model
@@ -270,3 +270,123 @@ class ChangeCaseStatusView(LoginRequiredMixin, UpdateView):
             user=self.request.user,
             action=f"changed case {case.id} status to {case.status}"
         )
+
+
+@login_required
+def case_detail(request, case_id):
+    case = get_object_or_404(Case, id=case_id)
+    context = {
+        'case': case,
+        'counseling_sessions': CounselingSession.objects.filter(survivor=case.reporter).order_by('-session_date'),
+        'court_cases': CourtCase.objects.filter(case=case).order_by('-hearing_date'),
+        'documents': CaseDocument.objects.filter(case=case).order_by('-uploaded_at'),
+        'follow_ups': PoliceFollowUp.objects.filter(case=case).order_by('-date_updated'),
+    }
+    return render(request, 'cases/case_detail.html', context)
+
+@login_required
+def add_counseling_session(request, case_id):
+    if request.user.role != 'provider':
+        raise PermissionDenied("Only providers can add counseling sessions")
+    
+    case = get_object_or_404(Case, id=case_id)
+    
+    if request.method == 'POST':
+        form = CounselingSessionForm(request.POST)
+        if form.is_valid():
+            session = form.save(commit=False)
+            session.counselor = request.user
+            session.survivor = case.reporter
+            session.save()
+            messages.success(request, 'Counseling session added successfully')
+            return redirect('case_detail', case_id=case_id)
+    else:
+        form = CounselingSessionForm()
+    
+    return render(request, 'cases/add_counseling_session.html', {'form': form, 'case': case})
+
+@login_required
+def add_court_case(request, case_id):
+    if request.user.role != 'law_enforcement':
+        raise PermissionDenied("Only law enforcement can add court cases")
+    
+    case = get_object_or_404(Case, id=case_id)
+    
+    if request.method == 'POST':
+        form = CourtCaseForm(request.POST)
+        if form.is_valid():
+            court_case = form.save(commit=False)
+            court_case.case = case
+            court_case.save()
+            messages.success(request, 'Court case added successfully')
+            return redirect('case_detail', case_id=case_id)
+    else:
+        form = CourtCaseForm()
+    
+    return render(request, 'cases/add_court_case.html', {'form': form, 'case': case})
+
+@login_required
+def add_police_followup(request, case_id):
+    if request.user.role != 'law_enforcement':
+        raise PermissionDenied("Only law enforcement can add follow-ups")
+    
+    case = get_object_or_404(Case, id=case_id)
+    
+    if request.method == 'POST':
+        form = PoliceFollowUpForm(request.POST)
+        if form.is_valid():
+            followup = form.save(commit=False)
+            followup.case = case
+            followup.officer = request.user
+            followup.save()
+            messages.success(request, 'Follow-up added successfully')
+            return redirect('case_detail', case_id=case_id)
+    else:
+        form = PoliceFollowUpForm()
+    
+    return render(request, 'cases/add_followup.html', {'form': form, 'case': case})
+
+@login_required
+def upload_case_document(request, case_id):
+    case = get_object_or_404(Case, id=case_id)
+    
+    if request.method == 'POST' and request.FILES.get('document'):
+        document = CaseDocument(
+            case=case,
+            document=request.FILES['document']
+        )
+        document.save()
+        messages.success(request, 'Document uploaded successfully')
+        return redirect('case_detail', case_id=case_id)
+    
+    return render(request, 'cases/upload_document.html', {'case': case})
+
+@login_required
+def court_cases(request):
+    court_cases = CourtCase.objects.all()
+    return render(request, 'cases/court_cases.html', {'court_cases': court_cases})
+
+@login_required
+def counseling_sessions(request):
+    if request.user.role == 'provider':
+        sessions = CounselingSession.objects.filter(counselor=request.user).order_by('-session_date')
+    elif request.user.role == 'survivor':
+        sessions = CounselingSession.objects.filter(survivor=request.user).order_by('-session_date')
+    else:
+        sessions = []
+    
+    paginator = Paginator(sessions, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'cases/counseling_sessions.html', {'page_obj': page_obj, 'now' : datetime.now()})
+
+@login_required
+def police_followups(request):
+    followups = PoliceFollowUp.objects.all()
+    return render(request, 'cases/police_followups.html', {'followups': followups})
+
+@login_required
+def case_documents(request):
+    documents = CaseDocument.objects.filter(case__reporter=request.user)
+    return render(request, 'cases/case_documents.html', {'documents': documents})
