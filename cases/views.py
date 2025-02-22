@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.utils.timezone import now
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import UpdateView
 from django.contrib import messages
@@ -170,7 +171,6 @@ class AssignCaseView(LoginRequiredMixin, UpdateView):
         return context
     
     def get_available_providers(self):
-        # This should be customized based on your User model and provider criteria
         return User.objects.filter(role='provider', is_active=True)
     
     def form_valid(self, form):
@@ -298,6 +298,15 @@ def add_counseling_session(request, case_id):
             session.counselor = request.user
             session.survivor = case.reporter
             session.save()
+            Notification.objects.create(
+                case = case,
+                user = case.reporter,
+                message = f"A counseling session has been scheduled for you on {session.session_date} by {request.user.get_username()}."
+            )
+            AuditLog.objects.create(
+                user = request.user,
+                action = f"added counseling session for case {case.id}"
+            )
             messages.success(request, 'Counseling session added successfully')
             return redirect('case_detail', case_id=case_id)
     else:
@@ -318,6 +327,15 @@ def add_court_case(request, case_id):
             court_case = form.save(commit=False)
             court_case.case = case
             court_case.save()
+            Notification.objects.create(
+                case = case,
+                user = case.reporter,
+                message = f"A court case has been scheduled for you on {court_case.hearing_date} by {request.user.get_username()}."
+            )
+            AuditLog.objects.create(    
+                user = request.user,
+                action = f"added court case for case {case.id}"
+            )
             messages.success(request, 'Court case added successfully')
             return redirect('case_detail', case_id=case_id)
     else:
@@ -339,6 +357,15 @@ def add_police_followup(request, case_id):
             followup.case = case
             followup.officer = request.user
             followup.save()
+            Notification.objects.create(
+                case = case,
+                user = case.reporter,
+                message = f"A follow-up has been scheduled for you on {followup.date_updated} by {request.user.get_username()}."
+            )
+            AuditLog.objects.create(
+                user = request.user,
+                action = f"added follow-up for case {case.id}"
+            )
             messages.success(request, 'Follow-up added successfully')
             return redirect('case_detail', case_id=case_id)
     else:
@@ -356,6 +383,10 @@ def upload_case_document(request, case_id):
             document=request.FILES['document']
         )
         document.save()
+        AuditLog.objects.create(
+            user = request.user,
+            action = f"uploaded document for case {case.id}"
+        )
         messages.success(request, 'Document uploaded successfully')
         return redirect('case_detail', case_id=case_id)
     
@@ -379,7 +410,7 @@ def counseling_sessions(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    return render(request, 'cases/counseling_sessions.html', {'page_obj': page_obj, 'now' : datetime.now()})
+    return render(request, 'cases/counseling_sessions.html', {'page_obj': page_obj, 'now' : now()})
 
 @login_required
 def police_followups(request):

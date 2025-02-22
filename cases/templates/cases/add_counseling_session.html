@@ -21,8 +21,9 @@
                 {% csrf_token %}
                 <div class="mb-3">
                     <label for="session_date" class="form-label">Session Date: </label>
-                    <input type="datetime" name="session_date" class="form-control" id="" >
+                    <input type="datetime-local" name="session_date" class="form-control" id="session_date">
                 </div>
+
                 <div class="mb-3">
                     <label for="notes" class="form-label">Session Notes: </label>
                     <textarea name="notes" id="notes" class="form-control" rows="3" 
