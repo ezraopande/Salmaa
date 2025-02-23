@@ -40,4 +40,6 @@ class CounselingSessionAdmin(admin.ModelAdmin):
     list_display = ("survivor", "counselor", "session_date")
     list_filter = ("session_date",)
     search_fields = ("survivor__username", "counselor__username")
+    
+admin.site.register(CaseDocument)
 

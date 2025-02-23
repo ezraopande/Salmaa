@@ -13,11 +13,10 @@ from audit.models import AuditLog  # Import the AuditLog model
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
-from audit.models import AuditLog  # Track assignments
-from datetime import datetime
-import calendar
+from audit.models import AuditLog 
 from django.utils.dateparse import parse_date
-
+from django.utils import timezone
+from django.db.models import Q
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 import pandas as pd
@@ -229,11 +228,6 @@ class ChangeCaseStatusView(LoginRequiredMixin, UpdateView):
         # context['status_history'] = self.get_status_history()
         return context
     
-    '''def get_status_history(self):
-        return StatusChange.objects.filter(
-            case=self.get_object()
-        ).order_by('-date')'''
-    
     def form_valid(self, form):
         case = self.get_object()
         new_status = form.cleaned_data['status']
@@ -241,13 +235,6 @@ class ChangeCaseStatusView(LoginRequiredMixin, UpdateView):
         notify_reporter = form.cleaned_data.get('notify_reporter', False)
         
         with transaction.atomic():
-            # Create status change record
-            '''StatusChange.objects.create(
-                case=case,
-                status=new_status,
-                notes=notes,
-                changed_by=self.request.user
-            )'''
             
             # Update case status
             case.status = new_status
@@ -414,10 +401,98 @@ def counseling_sessions(request):
 
 @login_required
 def police_followups(request):
-    followups = PoliceFollowUp.objects.all()
-    return render(request, 'cases/police_followups.html', {'followups': followups})
+    now = timezone.now()
+    
+    # Filter based on user role
+    if request.user.role == 'law_enforcement':
+        # Police officers see followups they created
+        followups = PoliceFollowUp.objects.filter(
+            officer=request.user
+        ).select_related('case', 'officer').order_by('-date_updated')
+    elif request.user.role == 'survivor':
+        # Survivors see followups related to their cases
+        followups = PoliceFollowUp.objects.filter(
+            case__survivor=request.user
+        ).select_related('case', 'officer').order_by('-date_updated')
+    elif request.user.role == 'provider':
+        # Service providers see followups for cases they're involved with
+        followups = PoliceFollowUp.objects.filter(
+            case__counseling_sessions__counselor=request.user
+        ).distinct().select_related('case', 'officer').order_by('-date_updated')
+    else:
+        followups = PoliceFollowUp.objects.none()
+
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        followups = followups.filter(
+            Q(case__id__icontains=search_query) |
+            Q(update_details__icontains=search_query) |
+            Q(officer__username__icontains=search_query)
+        )
+
+    # Pagination
+    paginator = Paginator(followups, 9)  # Show 9 followups per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'now': now,
+    }
+    
+    return render(request, 'cases/police_followups.html', context)
 
 @login_required
 def case_documents(request):
-    documents = CaseDocument.objects.filter(case__reporter=request.user)
-    return render(request, 'cases/case_documents.html', {'documents': documents})
+    # Filter based on user role
+    if request.user.role == 'law_enforcement':
+        # Police officers see all documents for cases they're involved with
+        documents = CaseDocument.objects.filter(
+            Q(case__follow_ups__officer=request.user)
+        ).distinct()
+    elif request.user.role == 'survivor':
+        # Survivors see documents from their cases
+        documents = CaseDocument.objects.filter(
+            case__survivor=request.user
+        )
+    elif request.user.role == 'provider':
+        # Service providers see documents for cases they're counseling
+        documents = CaseDocument.objects.filter(
+            case__assigned_provider=request.user
+        ).distinct()
+    else:
+        documents = CaseDocument.objects.none()
+
+    # Filter by document type
+    doc_type = request.GET.get('type')
+    if doc_type:
+        documents = documents.filter(document_type=doc_type)
+
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        documents = documents.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(case__id__icontains=search_query)
+        )
+
+    # Sort functionality
+    sort_by = request.GET.get('sort', '-uploaded_at')
+    documents = documents.order_by(sort_by)
+
+    # Pagination
+    paginator = Paginator(documents, 12)  # Show 12 documents per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'current_type': doc_type,
+        'sort_by': sort_by
+    }
+    
+    return render(request, 'cases/case_documents.html', context)
