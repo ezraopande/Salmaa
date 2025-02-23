@@ -29,6 +29,7 @@ class CaseDocument(models.Model):
         return f"Document for Case {self.case.id}"
 
 class CounselingSession(models.Model):
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="counseling_sessions")
     survivor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="counseling_sessions")
     counselor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sessions_conducted")
     session_date = models.DateTimeField()

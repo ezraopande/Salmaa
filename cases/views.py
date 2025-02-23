@@ -264,7 +264,7 @@ def case_detail(request, case_id):
     case = get_object_or_404(Case, id=case_id)
     context = {
         'case': case,
-        'counseling_sessions': CounselingSession.objects.filter(survivor=case.reporter).order_by('-session_date'),
+        'counseling_sessions': CounselingSession.objects.filter(Q(survivor=case.reporter) & Q(case=case) ).order_by('-session_date'),
         'court_cases': CourtCase.objects.filter(case=case).order_by('-hearing_date'),
         'documents': CaseDocument.objects.filter(case=case).order_by('-uploaded_at'),
         'follow_ups': PoliceFollowUp.objects.filter(case=case).order_by('-date_updated'),
@@ -284,6 +284,7 @@ def add_counseling_session(request, case_id):
             session = form.save(commit=False)
             session.counselor = request.user
             session.survivor = case.reporter
+            session.case = case
             session.save()
             Notification.objects.create(
                 case = case,
