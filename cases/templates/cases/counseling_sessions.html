@@ -28,7 +28,15 @@
                     <div class="col-md-6 col-lg-4 mb-4">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Session with {{ session.survivor.username }}</h5>
+                                <h5 class="card-title">
+                                    Session with 
+                                    {% if request.user.role == 'provider' %}
+                                    {{ session.survivor.username }}
+                                    {% else %}
+                                    {{ session.counselor.username }}
+                                    {% endif %}
+                                        
+                                </h5>
                                 <p class="card-text">
                                     <strong>Date:</strong> {{ session.session_date|date:"F d, Y" }}<br>
                                     <strong>Time:</strong> {{ session.session_date|date:"g:i A" }}

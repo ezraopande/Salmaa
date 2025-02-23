@@ -312,7 +312,7 @@
                             </a>
                         </li>
                         {% endif %}
-                        {% if user.role == "provider" %}
+                        {% if user.role != "law_enforcement" %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'counseling_sessions' %}">
                                 Counseling Sessions
