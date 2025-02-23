@@ -21,6 +21,10 @@
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="mb-3">
+                    <label for="document" class="form-label">Document Title</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                <div class="mb-3">
                     <label for="document" class="form-label">Select Document</label>
                     <input type="file" class="form-control" id="document" name="document" required>
                 </div>

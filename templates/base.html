@@ -263,7 +263,7 @@
                                 {{ user.username }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#">Profile</a></li>
+                                <!-- <li><a class="dropdown-item" href="#">Profile</a></li> -->
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
                             </ul>
@@ -306,11 +306,11 @@
                         </li>
                         {% endif %}
                         {% if user.role == "law_enforcement" %}
-                        <li class="nav-item">
+                        <!-- <li class="nav-item">
                             <a class="nav-link" href="{% url 'court_cases' %}">
                                 Court Cases
                             </a>
-                        </li>
+                        </li> -->
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'police_followups' %}">
                                 Police Follow-ups

@@ -9,7 +9,7 @@ from cases.views import (
     case_statistics, export_case_report_excel, export_case_report_pdf, 
     report_case, case_list, AssignCaseView, ChangeCaseStatusView, 
     add_counseling_session, add_court_case, add_police_followup, upload_case_document,
-    court_cases, counseling_sessions, police_followups, case_documents
+    court_cases, counseling_sessions, police_followups, case_documents, delete_document
 )
 from communication.views import send_message
 from notifications.views import notifications_list, mark_notification_as_read, mark_all_notifications_read, clear_all_notifications
@@ -45,6 +45,7 @@ urlpatterns = [
     path('counseling-sessions/', login_required(counseling_sessions), name='counseling_sessions'),
     path('police-followups/', login_required(police_followups), name='police_followups'),
     path('case-documents/', login_required(case_documents), name='case_documents'),
+    path('delete-document/<int:id>/', login_required(delete_document), name='delete-document'),
 
     # Notifications
     path('notifications/', login_required(notifications_list), name='notifications_list'),

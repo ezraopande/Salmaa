@@ -5,7 +5,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Case Documents</h2>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadDocumentModal">
-            <i class="fas fa-upload"></i> Upload Document
+            <i class="fas fa-upload"></i>
         </button>
     </div>
 
@@ -19,14 +19,6 @@
                            placeholder="Search documents..." 
                            name="search"
                            value="{{ search_query }}">
-                    <select class="form-select" name="type" style="max-width: 200px;">
-                        <option value="">All Types</option>
-                        {% for type in document_types %}
-                        <option value="{{ type }}" {% if selected_type == type %}selected{% endif %}>
-                            {{ type|title }}
-                        </option>
-                        {% endfor %}
-                    </select>
                     <button class="btn btn-primary" type="submit">
                         <i class="fas fa-search"></i> Search
                     </button>
@@ -70,7 +62,7 @@
                         <button class="btn btn-danger btn-sm" 
                                 data-bs-toggle="modal" 
                                 data-bs-target="#deleteModal" 
-                                data-document-id="{{ document.id }}">
+                                data-document-id="{{ document.id }}">delete
                             <i class="fas fa-trash"></i>
                         </button>
                         {% endif %}
@@ -141,6 +133,13 @@
             <div class="modal-body">
                 <p>Are you sure you want to delete this document? This action cannot be undone.</p>
             </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post" action="">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -153,7 +152,7 @@
             const button = event.relatedTarget; // Button that triggered the modal
             const documentId = button.getAttribute('data-document-id'); // Extract document ID
             const deleteForm = document.getElementById('deleteForm');
-            deleteForm.action = "".replace("0", documentId); // Update form action
+            deleteForm.action = "{% url 'delete-document' 0 %}".replace("0", documentId); // Update form action
         });
     });
 </script>

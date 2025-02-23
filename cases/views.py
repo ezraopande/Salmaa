@@ -333,6 +333,7 @@ def add_court_case(request, case_id):
 @login_required
 def add_police_followup(request, case_id):
     if request.user.role != 'law_enforcement':
+        messages.error(request, "Only law enforcement")
         raise PermissionDenied("Only law enforcement can add follow-ups")
     
     case = get_object_or_404(Case, id=case_id)
@@ -367,7 +368,9 @@ def upload_case_document(request, case_id):
     if request.method == 'POST' and request.FILES.get('document'):
         document = CaseDocument(
             case=case,
-            document=request.FILES['document']
+            document=request.FILES['document'],
+            title = request.POST['title'],
+            uploaded_by = request.user
         )
         document.save()
         AuditLog.objects.create(
@@ -496,3 +499,13 @@ def case_documents(request):
     }
     
     return render(request, 'cases/case_documents.html', context)
+
+def delete_document(request, id):
+    case_document = get_object_or_404(CaseDocument,id = id)
+    case_document.delete()
+    messages.success(request, "The document was deleted successfully")
+    AuditLog.objects.create(
+        user = request.user,
+        action = f"deleted document for case {case_document.case.id}"
+    )
+    return redirect('/case-documents/')
