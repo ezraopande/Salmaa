@@ -19,6 +19,12 @@
         .navbar {
             background-color: var(--primary-color);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: fixed; /* Make navbar fixed */
+            top: 0; /* Stick to the top */
+            left: 0; /* Align to the left */
+            right: 0; /* Stretch across the width */
+            z-index: 1000; /* Ensure it stays above other content */
+            height: 56px; /* Set a fixed height */
         }
 
         .navbar-brand, .nav-link {
@@ -33,8 +39,14 @@
         .sidebar {
             background-color: var(--primary-light);
             border-right: 1px solid var(--primary-fade);
-            height: calc(100vh - 56px);
+            height: calc(100vh - 56px); 
+            position: fixed; 
+            top: 56px; 
+            left: 0; 
+            width: 230px;
+            overflow-y: auto; 
             padding: 20px;
+            z-index: 999;
         }
 
         .sidebar .nav-link {
@@ -52,6 +64,8 @@
 
         /* Main Content Area */
         .main-content {
+            margin-top: 56px; 
+            margin-left: 250px; 
             padding: 20px;
             background-color: #f8f9fa;
             min-height: calc(100vh - 56px);
