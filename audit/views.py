@@ -131,7 +131,7 @@ def export_audit_logs_pdf(request):
 
     # Create response
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="SARN_GBV_audit_logs_{datetime.now().strftime("%Y%m%d")}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="SARN_SGBV_audit_logs_{datetime.now().strftime("%Y%m%d")}.pdf"'
 
     # Create the PDF document
     doc = SimpleDocTemplate(
@@ -195,7 +195,7 @@ def export_audit_logs_pdf(request):
     elements.append(Spacer(1, 20))
 
     # Add title
-    elements.append(Paragraph("SARN GBV Management System", title_style))
+    elements.append(Paragraph("SARN SGBV Management System", title_style))
     elements.append(Paragraph("Audit Log Report", subtitle_style))
     
     # Add date

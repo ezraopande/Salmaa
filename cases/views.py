@@ -34,9 +34,9 @@ def report_case(request):
         # Notify law enforcement and providers
         recipients = User.objects.filter(role__in=["law_enforcement", "provider"]).values_list("email", flat=True)
         '''send_mail(
-            "New GBV Case Reported",
+            "New SGBV Case Reported",
             f"A new case has been reported by {request.user.username}. Please check the system for details.",
-            "admin@sarn-gbv.org",
+            "admin@sarn-sgbv.org",
             list(recipients),
             fail_silently=False,
         )'''
@@ -112,7 +112,7 @@ def export_case_report_pdf(request):
     cases = Case.objects.all()
     
     y = 800
-    p.drawString(100, y, "SARN GBV Case Report")
+    p.drawString(100, y, "SARN SGBV Case Report")
     y -= 30
     for case in cases:
         p.drawString(100, y, f"ID: {case.id}, Status: {case.status}, Date: {case.date_reported}")
