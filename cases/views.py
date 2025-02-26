@@ -212,37 +212,11 @@ class AssignCaseView(LoginRequiredMixin, UpdateView):
                 case.status = 'under_investigation'
             case.save()
             
-            # Create assignment record
-            '''CaseAssignment.objects.create(
-                case=case,
-                provider=provider,
-                assigned_by=self.request.user,
-                notes=notes
-            )'''
-            
-            # Optionally notify the provider
-            self.notify_provider(case, provider)
         
         messages.success(self.request, f'Case #{case.number} has been assigned to {provider.get_full_name()}')
         return redirect('case_detail', case_id=case.id)
     
-    def notify_provider(self, case, provider):
-        Notification.objects.create(
-            user=case.survivor,
-            case=case,
-            message=f"Your case ({case.case_number}) has been assigned to {provider.username}."
-        )
-        
-        Notification.objects.create(
-            user=provider,
-            case=case,
-            message=f"You have been assigned to case #{case.case_number}."
-        )
-        
-        AuditLog.objects.create(
-            user=self.request.user,
-            action=f"assigned case {case.case_number} to {provider.username}"
-        )
+
 
 class ChangeCaseStatusView(LoginRequiredMixin, UpdateView):
     model = Case
@@ -260,32 +234,15 @@ class ChangeCaseStatusView(LoginRequiredMixin, UpdateView):
         case = self.get_object()
         new_status = form.cleaned_data['status']
         notes = form.cleaned_data['status_notes']
-        notify_survivor = form.cleaned_data.get('notify_survivor', False)
         
         with transaction.atomic():
             
             # Update case status
             case.status = new_status
             case.save()
-            
-            if notify_survivor:
-                self.notify_survivor(case, new_status, notes)
         
         messages.success(self.request, f'Status for Case #{case.id} has been updated to {case.get_status_display()}')
         return redirect('case_detail', case_id=case.id)
-    
-    def notify_survivor(self, case, new_status, notes):
-        Notification.objects.create(
-            user=case.survivor,
-            case=case,
-            message=f"Your case status has been updated to '{new_status}'."
-        )
-        
-        AuditLog.objects.create(
-            user=self.request.user,
-            action=f"changed case {case.id} status to {case.status}"
-        )
-
 
 @login_required
 def case_detail(request, case_id):
@@ -314,15 +271,7 @@ def add_counseling_session(request, case_id):
             session.survivor = case.survivor
             session.case = case
             session.save()
-            Notification.objects.create(
-                case = case,
-                user = case.survivor,
-                message = f"A counseling session has been scheduled for you on {session.session_date} by {request.user.get_username()}."
-            )
-            AuditLog.objects.create(
-                user = request.user,
-                action = f"added counseling session for case {case.case_number}"
-            )
+            
             messages.success(request, 'Counseling session added successfully')
             return redirect('case_detail', case_id=case_id)
     else:
@@ -332,8 +281,8 @@ def add_counseling_session(request, case_id):
 
 @login_required
 def add_court_case(request, case_id):
-    if request.user.role != 'law_enforcement':
-        raise PermissionDenied("Only law enforcement can add court cases")
+    if request.user.role != 'officer':
+        raise PermissionDenied("Only officers can add court cases")
     
     case = get_object_or_404(Case, id=case_id)
     
@@ -342,18 +291,21 @@ def add_court_case(request, case_id):
         if form.is_valid():
             court_case = form.save(commit=False)
             court_case.case = case
-            court_case.save()
-            Notification.objects.create(
-                case = case,
-                user = case.survivor,
-                message = f"A court case has been scheduled for you on {court_case.hearing_date} by {request.user.get_username()}."
-            )
-            AuditLog.objects.create(    
-                user = request.user,
-                action = f"added court case for case {case.id}"
-            )
-            messages.success(request, 'Court case added successfully')
-            return redirect('case_detail', case_id=case_id)
+            with transaction.atomic():
+                court_case.save()
+                case.status = 'legal_proceedings'
+                case.save()
+                Notification.objects.create(
+                    case = case,
+                    user = case.survivor,
+                    message = f"A court case has been scheduled for you on {court_case.hearing_date} by {request.user.get_username()}."
+                )
+                AuditLog.objects.create(    
+                    user = request.user,
+                    action = f"added court case for case {case.case_number}"
+                )
+                messages.success(request, 'Court case added successfully')
+                return redirect('case_detail', case_id=case_id)
     else:
         form = CourtCaseForm()
     
@@ -402,10 +354,6 @@ def upload_case_document(request, case_id):
             uploaded_by = request.user
         )
         document.save()
-        AuditLog.objects.create(
-            user = request.user,
-            action = f"uploaded document for case {case.id}"
-        )
         messages.success(request, 'Document uploaded successfully')
         return redirect('case_detail', case_id=case_id)
     
@@ -479,20 +427,18 @@ def police_followups(request):
 @login_required
 def case_documents(request):
     # Filter based on user role
-    if request.user.role == 'law_enforcement':
+    if request.user.role == 'officer':
         # Police officers see all documents for cases they're involved with
-        documents = CaseDocument.objects.filter(
-            Q(case__follow_ups__officer=request.user)
-        ).distinct()
+        documents = CaseDocument.objects.all()
     elif request.user.role == 'survivor':
         # Survivors see documents from their cases
         documents = CaseDocument.objects.filter(
             case__survivor=request.user
         )
-    elif request.user.role == 'provider':
+    elif request.user.role == 'law_enforcement':
         # Service providers see documents for cases they're counseling
         documents = CaseDocument.objects.filter(
-            case__assigned_provider=request.user
+            case__assigned_officer=request.user
         ).distinct()
     else:
         documents = CaseDocument.objects.none()

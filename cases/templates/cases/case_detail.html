@@ -57,6 +57,7 @@
                     <h6>Survivor Information</h6>
                     <p class="text-muted">
                         Reported by: {{ case.survivor.get_username }}<br>
+                        Phone No.: {{ case.survivor.phone }}<br>
                         Date Reported: {{ case.report_date|date:"F d, Y" }}
                     </p>
                     
@@ -102,7 +103,7 @@
     <div class="row mb-4">
         <div class="col">
             <div class="btn-group" role="group">
-                {% if user.role == 'officer' %}
+                {% if user.role in 'officer survivor' %}
                     <a href="{% url 'add_counseling_session' case.id %}" class="btn btn-outline-primary">
                         <i class="bi bi-plus-circle"></i> Add Counseling Session
                     </a>
@@ -121,28 +122,32 @@
     </div>
 
     <!-- Tabs for Different Sections -->
-    <ul class="nav nav-tabs mb-4" id="caseTab" role="tablist">
-        <li class="nav-item">
-            <a class="nav-link active" id="counseling-tab" data-bs-toggle="tab" href="#counseling">
-                Counseling Sessions
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="court-tab" data-bs-toggle="tab" href="#court">
-                Court Cases
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="documents-tab" data-bs-toggle="tab" href="#documents">
-                Documents
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="followups-tab" data-bs-toggle="tab" href="#followups">
-                Police Follow-ups
-            </a>
-        </li>
-    </ul>
+    {% if user.role == 'officer' %}
+        
+        <ul class="nav nav-tabs mb-4" id="caseTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="counseling-tab" data-bs-toggle="tab" href="#counseling">
+                    Counseling Sessions
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="court-tab" data-bs-toggle="tab" href="#court">
+                    Court Cases
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="documents-tab" data-bs-toggle="tab" href="#documents">
+                    Documents
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="followups-tab" data-bs-toggle="tab" href="#followups">
+                    Police Follow-ups
+                </a>
+            </li>
+        </ul>
+    
+        
 
     <div class="tab-content" id="caseTabContent">
         <!-- Counseling Sessions Tab -->
@@ -229,6 +234,7 @@
             {% endif %}
         </div>
     </div>
+    {% endif %}
     
     {% if not user.role and case.status == 'reported' %}
     <div class="card mt-4">

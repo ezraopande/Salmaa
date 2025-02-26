@@ -16,7 +16,7 @@ from users.models import User
 
 @login_required
 def audit_logs(request):
-    if request.user.role != "law_enforcement":
+    if request.user.role != "officer":
         return redirect('dashboard')
 
     # Get all users for the filter dropdown

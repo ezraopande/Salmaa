@@ -244,7 +244,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     {% if user.is_authenticated %}
-                        {% if user.role in "provider law_enforcement" %}
+                        {% if user.role in "officer law_enforcement" %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'case_list' %}">Cases</a>
                         </li>
@@ -263,7 +263,7 @@
                             </a>
                         </li>
 
-                        {% if user.role == "law_enforcement" %}
+                        {% if user.role == "officer" %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'audit_logs' %}">Audit Logs</a>
                         </li>
