@@ -2,12 +2,37 @@
 from django import forms
 from .models import Case, PoliceFollowUp, CounselingSession, CaseDocument, CourtCase
 
+
+class CaseReportForm(forms.ModelForm):
+    class Meta:
+        model = Case
+        fields = [
+            'incident_type', 
+            'incident_date', 
+            'incident_location', 
+            'description',
+            'perpetrator_name', 
+            'perpetrator_details'
+        ]
+        widgets = {
+            'incident_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'description': forms.Textarea(attrs={'rows': 5}),
+            'perpetrator_details': forms.Textarea(attrs={'rows': 3}),
+        }
+        labels = {
+            'perpetrator_name': 'Name of Perpetrator (if known)',
+            'perpetrator_details': 'Additional Details about Perpetrator',
+        }
+        help_texts = {
+            'description': 'Please provide a detailed account of the incident',
+        }
+
 class CaseAssignmentForm(forms.ModelForm):
     notes = forms.CharField(widget=forms.Textarea, required=False)
     
     class Meta:
         model = Case
-        fields = ['assigned_provider']
+        fields = ['assigned_officer']
 
 class StatusChangeForm(forms.ModelForm):
     status_notes = forms.CharField(widget=forms.Textarea)

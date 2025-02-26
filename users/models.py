@@ -4,8 +4,9 @@ from django.db import models
 class User(AbstractUser):
     ROLE_CHOICES = [
         ('survivor', 'Survivor'),
-        ('provider', 'Service Provider'),
+        ('officer', 'SGBV Officer'),
         ('law_enforcement', 'Law Enforcement'),
+        ('medical_officer', 'Medical Officer'),
     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='survivor')
     phone = models.CharField(max_length=15, blank=True, null=True)

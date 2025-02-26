@@ -20,242 +20,261 @@
     </div>
 
     <!-- Statistics Cards Row -->
-    <div class="row mb-4">
-        <!-- Total Cases Card -->
-        <div class="col-md-3 mb-3">
-            <div class="card bg-primary bg-opacity-10 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="card-subtitle mb-2 text-primary">Total Cases</h6>
-                            <h2 class="card-title mb-0">{{ total_cases }}</h2>
-                        </div>
-                        <div class="bg-primary bg-opacity-25 rounded-circle p-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16">
-                                <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
-                            </svg>
-                        </div>
+<div class="row mb-4">
+    <!-- Total Cases Card -->
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary bg-opacity-10 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-primary">Total Cases</h6>
+                        <h2 class="card-title mb-0">{{ total_cases }}</h2>
                     </div>
-                    <p class="card-text mt-3">
-                        {% if user_role == 'survivor' %}Your reported cases
-                        {% elif user_role == 'provider' %}Cases assigned to you
-                        {% else %}Total cases in system{% endif %}
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pending Cases -->
-        <div class="col-md-3 mb-3">
-            <div class="card bg-warning bg-opacity-10 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="card-subtitle mb-2 text-warning">Pending Cases</h6>
-                            <h2 class="card-title mb-0">{{ pending_count }}</h2>
-                        </div>
-                        <div class="bg-warning bg-opacity-25 rounded-circle p-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-clock" viewBox="0 0 16 16">
-                                <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
-                                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
-                            </svg>
-                        </div>
+                    <div class="bg-primary bg-opacity-25 rounded-circle p-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-folder" viewBox="0 0 16 16">
+                            <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
+                        </svg>
                     </div>
-                    <p class="card-text mt-3">Awaiting assignment</p>
                 </div>
-            </div>
-        </div>
-
-        <!-- Under Investigation -->
-        <div class="col-md-3 mb-3">
-            <div class="card bg-info bg-opacity-10 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="card-subtitle mb-2 text-info">Under Investigation</h6>
-                            <h2 class="card-title mb-0">{{ investigation_count }}</h2>
-                        </div>
-                        <div class="bg-info bg-opacity-25 rounded-circle p-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <p class="card-text mt-3">Cases being investigated</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Closed Cases -->
-        <div class="col-md-3 mb-3">
-            <div class="card bg-success bg-opacity-10 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="card-subtitle mb-2 text-success">Closed Cases</h6>
-                            <h2 class="card-title mb-0">{{ closed_count }}</h2>
-                        </div>
-                        <div class="bg-success bg-opacity-25 rounded-circle p-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
-                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                                <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
-                            </svg>
-                        </div>
-                    </div>
-                    <p class="card-text mt-3">Successfully resolved</p>
-                </div>
+                <p class="card-text mt-3">
+                    {% if user_role == 'survivor' %}Your reported incidents
+                    {% elif user_role == 'law_enforment' %}Cases assigned to you
+                    {% elif user_role == 'medical_examiner' %}Medical examination cases
+                    {% else %}Total cases in system{% endif %}
+                </p>
             </div>
         </div>
     </div>
 
-    <!-- Role-Specific Additional Statistics -->
-    {% if user_role == 'law_enforcement' %}
-    <div class="row mb-4">
-        <!-- Provider Statistics -->
-        <div class="col-md-6 mb-3">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Cases by Provider</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Provider</th>
-                                    <th>Total Cases</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for provider in cases_by_provider %}
-                                <tr>
-                                    <td>{{ provider.assigned_provider__username }}</td>
-                                    <td>{{ provider.count }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+    <!-- Pending Cases -->
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning bg-opacity-10 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-warning">Pending Cases</h6>
+                        <h2 class="card-title mb-0">{{ pending_count }}</h2>
+                    </div>
+                    <div class="bg-warning bg-opacity-25 rounded-circle p-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-clock" viewBox="0 0 16 16">
+                            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                        </svg>
                     </div>
                 </div>
+                <p class="card-text mt-3">Awaiting assignment</p>
             </div>
         </div>
+    </div>
 
-        <!-- Unassigned Cases Alert -->
-        <div class="col-md-6 mb-3">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">System Status</h5>
-                </div>
-                <div class="card-body">
-                    {% if unassigned_cases > 0 %}
-                    <div class="alert alert-warning">
-                        <h6 class="alert-heading">Attention Needed</h6>
-                        <p class="mb-0">There are {{ unassigned_cases }} unassigned cases requiring attention.</p>
+    <!-- Under Investigation -->
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info bg-opacity-10 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-info">Under Investigation</h6>
+                        <h2 class="card-title mb-0">{{ investigation_count }}</h2>
                     </div>
-                    {% endif %}
+                    <div class="bg-info bg-opacity-25 rounded-circle p-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                    </div>
                 </div>
+                <p class="card-text mt-3">Cases being processed</p>
             </div>
         </div>
     </div>
-    {% endif %}
 
-    {% if user_role == 'provider' %}
-    <div class="row mb-4">
-        <div class="col-md-6 mb-3">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Monthly Progress</h5>
+    <!-- Closed Cases -->
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success bg-opacity-10 h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-success">Closed Cases</h6>
+                        <h2 class="card-title mb-0">{{ closed_count }}</h2>
+                    </div>
+                    <div class="bg-success bg-opacity-25 rounded-circle p-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check-circle" viewBox="0 0 16 16">
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                            <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                        </svg>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p class="mb-2">Cases closed this month: {{ cases_closed_this_month }}</p>
-                    <p class="mb-0">Cases requiring attention: {{ cases_requiring_attention }}</p>
-                </div>
+                <p class="card-text mt-3">Successfully resolved</p>
             </div>
         </div>
     </div>
-    {% endif %}
-
-    {% if user_role == 'survivor' and latest_case_status %}
-    <div class="row mb-4">
-        <div class="col-md-6 mb-3">
-            <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Latest Case Status</h5>
-                </div>
-                <div class="card-body">
-                    <p class="mb-2">Status: {{ latest_case_status }}</p>
-                    <p class="mb-0">Cases this month: {{ cases_this_month }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Recent Cases -->
-    <div class="card">
-        <div class="card-header bg-white">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Recent Cases</h5>
-                <a href="{% url 'case_list' %}" class="btn btn-sm btn-outline-primary">View All Cases</a>
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Case ID</th>
-                            <th>Reported Date</th>
-                            <th>Status</th>
-                            {% if user_role != 'survivor' %}
-                            <th>Reporter</th>
-                            {% endif %}
-                            {% if user_role == 'law_enforcement' %}
-                            <th>Assigned To</th>
-                            {% endif %}
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for case in recent_cases %}
-                        <tr>
-                            <td>#{{ case.id }}</td>
-                            <td>{{ case.date_reported|date:"M d, Y" }}</td>
-                            <td>
-                                <span class="badge {% if case.status == 'pending' %}bg-warning
-                                    {% elif case.status == 'under_investigation' %}bg-info
-                                    {% else %}bg-success{% endif %}">
-                                    {{ case.get_status_display }}
-                                </span>
-                            </td>
-                            {% if user_role != 'survivor' %}
-                            <td>{{ case.reporter.get_full_name }}</td>
-                            {% endif %}
-                            {% if user_role == 'law_enforcement' %}
-                            <td>
-                                {% if case.assigned_provider %}
-                                    {{ case.assigned_provider.get_full_name }}
-                                {% else %}
-                                    <span class="text-muted">Unassigned</span>
-                                {% endif %}
-                            </td>
-                            {% endif %}
-                            <td>
-                                <a href="{% url 'case_detail' case.id %}" class="btn btn-sm btn-outline-secondary">View Details</a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center py-4">
-                                <p class="text-muted mb-0">No recent cases found</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
+
+<!-- Role-Specific Additional Statistics -->
+{% if user_role == 'law_enforcement' %}
+<div class="row mb-4">
+    <!-- Provider Statistics -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Cases by Officer</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Officer</th>
+                                <th>Total Cases</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for provider in cases_by_provider %}
+                            <tr>
+                                <td>{{ provider.assigned_officer__username }}</td>
+                                <td>{{ provider.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unassigned Cases Alert -->
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">System Status</h5>
+            </div>
+            <div class="card-body">
+                {% if unassigned_cases > 0 %}
+                <div class="alert alert-warning">
+                    <h6 class="alert-heading">Attention Needed</h6>
+                    <p class="mb-0">There are {{ unassigned_cases }} unassigned cases requiring attention.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if user_role == 'provider' %}
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Monthly Progress</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">Cases closed this month: {{ cases_closed_this_month }}</p>
+                <p class="mb-0">Cases requiring attention: {{ cases_requiring_attention }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if user_role == 'medical_examiner' %}
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Medical Cases</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">Medical examination required: {{ investigation_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if user_role == 'survivor' and latest_case_status %}
+<div class="row mb-4">
+    <div class="col-md-6 mb-3">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Latest Case Status</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">Status: {{ latest_case_status }}</p>
+                <p class="mb-0">Cases this month: {{ cases_this_month }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Cases -->
+<div class="card">
+    <div class="card-header bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Recent Cases</h5>
+            <a href="{% url 'case_list' %}" class="btn btn-sm btn-outline-primary">View All Cases</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Case ID</th>
+                        <th>Reported Date</th>
+                        <th>Incident Type</th>
+                        <th>Status</th>
+                        {% if user_role != 'survivor' %}
+                        <th>Survivor</th>
+                        {% endif %}
+                        {% if user_role == 'law_enforcement' %}
+                        <th>Assigned To</th>
+                        {% endif %}
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in recent_cases %}
+                    <tr>
+                        <td>#{{ case.case_number }}</td>
+                        <td>{{ case.report_date|date:"M d, Y" }}</td>
+                        <td>{{ case.get_incident_type_display }}</td>
+                        <td>
+                            <span class="badge {% if case.status == 'reported' %}bg-warning
+                                {% elif case.status == 'under_investigation' %}bg-info
+                                {% elif case.status == 'medical_examination' %}bg-primary
+                                {% elif case.status == 'legal_proceedings' %}bg-secondary
+                                {% else %}bg-success{% endif %}">
+                                {{ case.get_status_display }}
+                            </span>
+                        </td>
+                        {% if user_role != 'survivor' %}
+                        <td>{{ case.survivor.get_full_name }}</td>
+                        {% endif %}
+                        {% if user_role == 'law_enforcement' %}
+                        <td>
+                            {% if case.assigned_officer %}
+                                {{ case.assigned_officer.get_full_name }}
+                            {% else %}
+                                <span class="text-muted">Unassigned</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                        <td>
+                            <a href="{% url 'case_detail' case.id %}" class="btn btn-sm btn-outline-secondary">View Details</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{% if user_role == 'law_enforcement' %}7{% elif user_role != 'survivor' %}6{% else %}5{% endif %}" class="text-center py-4">
+                            <p class="text-muted mb-0">No recent cases found</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

@@ -16,6 +16,8 @@ from django.db.models import Count
 from audit.models import AuditLog 
 from django.utils.dateparse import parse_date
 from django.utils import timezone
+from cases.forms import CaseReportForm
+import uuid
 from django.db.models import Q
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas
@@ -25,37 +27,62 @@ from django.core.mail import send_mail
 
 @login_required
 def report_case(request):
+    """
+    View for reporting a new SGBV case
+    """
     if request.method == "POST":
-        description = request.POST["description"]
-        evidence_file = request.FILES.get("evidence_file")
+        form = CaseReportForm(request.POST)
+        if form.is_valid():
+            # Create case but don't save to DB yet
+            case = form.save(commit=False)
+            
+            # Set additional fields
+            case.survivor = request.user
+            case.case_number = f"SGBV-{timezone.now().strftime('%Y%m%d')}-{str(uuid.uuid4())[:8]}"
+            case.status = 'reported'
+            
+            # Save to DB
+            case.save()
+            
+            # Notify law enforcement and providers
+            recipients = User.objects.filter(
+                role__in=["law_enforcement", "provider"]
+            ).values_list("email", flat=True)
+            
+            try:
+                # send_mail(
+                #     "New SGBV Case Reported",
+                #     f"A new case has been reported by {request.user.username}. Case #: {case.case_number}. Please check the system for details.",
+                #     "admin@sarn-sgbv.org",
+                #     list(recipients),
+                #     fail_silently=False,
+                # )
+                pass
+            except Exception as e:
+                # Log the error but don't prevent case from being reported
+                print(f"Email notification failed: {str(e)}")
+            
+            messages.success(request, f"Case reported successfully. Your case number is {case.case_number}")
+            return redirect('case_detail', case_id=case.id)
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = CaseReportForm()
+    
+    return render(request, 'cases/report_case.html', {'form': form})
 
-        case = Case.objects.create(reporter=request.user, description=description, evidence_file=evidence_file)
-
-        # Notify law enforcement and providers
-        recipients = User.objects.filter(role__in=["law_enforcement", "provider"]).values_list("email", flat=True)
-        '''send_mail(
-            "New SGBV Case Reported",
-            f"A new case has been reported by {request.user.username}. Please check the system for details.",
-            "admin@sarn-sgbv.org",
-            list(recipients),
-            fail_silently=False,
-        )'''
-        messages.success(request, "Case reported successfully.")
-        return redirect('case_list')
-
-    return render(request, 'cases/report_case.html')
 
 
 
 @login_required
 def case_list(request):
     # Determine the cases based on the user's role
-    if request.user.role == "law_enforcement":
+    if request.user.role == "officer":
         cases = Case.objects.all()
-    elif request.user.role == "provider":
-        cases = Case.objects.filter(assigned_provider=request.user)
+    elif request.user.role == "law_enforcement":
+        cases = Case.objects.filter(assigned_officer=request.user)
     else:
-        cases = Case.objects.filter(reporter=request.user)
+        cases = Case.objects.filter(survivor=request.user)
         
     # Filter cases based on the query parameters
     status_filter = request.GET.get('status')  
@@ -264,7 +291,7 @@ def case_detail(request, case_id):
     case = get_object_or_404(Case, id=case_id)
     context = {
         'case': case,
-        'counseling_sessions': CounselingSession.objects.filter(Q(survivor=case.reporter) & Q(case=case) ).order_by('-session_date'),
+        'counseling_sessions': CounselingSession.objects.filter(Q(survivor=case.survivor) & Q(case=case) ).order_by('-session_date'),
         'court_cases': CourtCase.objects.filter(case=case).order_by('-hearing_date'),
         'documents': CaseDocument.objects.filter(case=case).order_by('-uploaded_at'),
         'follow_ups': PoliceFollowUp.objects.filter(case=case).order_by('-date_updated'),

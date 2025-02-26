@@ -1,12 +1,14 @@
 {% extends 'base.html' %}
 
+{% block title %}Case Details{% endblock %}
+
 {% block content %}
 <div class="container-fluid">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
             <li class="breadcrumb-item"><a href="{% url 'case_list' %}">Cases</a></li>
-            <li class="breadcrumb-item active">Case #{{ case.id }}</li>
+            <li class="breadcrumb-item active">Case #{{ case.case_number }}</li>
         </ol>
     </nav>
 
@@ -14,10 +16,14 @@
     <div class="card mb-4">
         <div class="card-header bg-white">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Case Details #{{ case.id }}</h5>
-                <span class="badge {% if case.status == 'pending' %}bg-warning
+                <h5 class="mb-0">Case Details #{{ case.case_number }}</h5>
+                <span class="badge 
+                    {% if case.status == 'reported' %}bg-warning
                     {% elif case.status == 'under_investigation' %}bg-info
-                    {% else %}bg-success{% endif %}">
+                    {% elif case.status == 'medical_examination' %}bg-primary
+                    {% elif case.status == 'legal_proceedings' %}bg-secondary
+                    {% elif case.status == 'closed' %}bg-success
+                    {% endif %}">
                     {{ case.get_status_display }}
                 </span>
             </div>
@@ -25,35 +31,57 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
+                    <h6>Incident Information</h6>
+                    <p class="text-muted">
+                        <strong>Type:</strong> {{ case.get_incident_type_display }}<br>
+                        <strong>Date:</strong> {{ case.incident_date|date:"F d, Y - h:i A" }}<br>
+                        <strong>Location:</strong> {{ case.incident_location }}<br>
+                    </p>
+                    
                     <h6>Description</h6>
                     <p class="text-muted">{{ case.description }}</p>
                     
-                    <h6>Reporter Information</h6>
+                    {% if case.perpetrator_name or case.perpetrator_details %}
+                    <h6>Perpetrator Information</h6>
                     <p class="text-muted">
-                        Reported by: {{ case.reporter.get_username }}<br>
-                        Date Reported: {{ case.date_reported|date:"F d, Y" }}
+                        {% if case.perpetrator_name %}
+                        <strong>Name:</strong> {{ case.perpetrator_name }}<br>
+                        {% endif %}
+                        {% if case.perpetrator_details %}
+                        <strong>Details:</strong> {{ case.perpetrator_details }}
+                        {% endif %}
                     </p>
+                    {% endif %}
                 </div>
                 <div class="col-md-6">
+                    <h6>Survivor Information</h6>
+                    <p class="text-muted">
+                        Reported by: {{ case.survivor.get_full_name }}<br>
+                        Date Reported: {{ case.report_date|date:"F d, Y" }}
+                    </p>
+                    
                     <h6>Case Assignment</h6>
                     <p class="text-muted">
-                        {% if case.assigned_provider %}
-                            Assigned to: {{ case.assigned_provider.get_username }}
+                        {% if case.assigned_officer %}
+                            Assigned to: {{ case.assigned_officer.get_full_name }}
                         {% else %}
                             Not yet assigned
                         {% endif %}
                     </p>
-                    {% if user.role == 'law_enforcement' or user.role == 'provider' %}
+                    
+                    {% if user.user_type == 'officer' %}
                     <div class="mt-4">
                         <h5>Actions</h5>
                         <div class="btn-group">
-                            
-                            <button type="button" class="btn btn-outline-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button type="button" class="btn btn-primary">Manage Case</button>
+                            <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="visually-hidden">Toggle Dropdown</span>
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'assign_case' case.id %}">Assign Case</a></li>
-                                <li><a class="dropdown-item" href="{% url 'change_status' case.id %}">Change Status</a></li>
+                                <li><a class="dropdown-item" href="{% url 'change_status' case.id %}">Update Status</a></li>
+                                {% if user.user_type == 'law_enforcement' and not case.assigned_officer %}
+                                <li><a class="dropdown-item" href="#" onclick="assignToSelf('{{ case.id }}')">Assign to Self</a></li>
+                                {% endif %}
                             </ul>
                         </div>
                     </div>
@@ -67,12 +95,12 @@
     <div class="row mb-4">
         <div class="col">
             <div class="btn-group" role="group">
-                {% if user.role == 'provider' %}
+                {% if user.user_type == 'provider' %}
                     <a href="{% url 'add_counseling_session' case.id %}" class="btn btn-outline-primary">
                         <i class="bi bi-plus-circle"></i> Add Counseling Session
                     </a>
                 {% endif %}
-                {% if user.role == 'law_enforcement' %}
+                {% if user.user_type == 'law_enforcement' %}
                     <a href="{% url 'add_court_case' case.id %}" class="btn btn-outline-primary">
                         <i class="bi bi-plus-circle"></i> Add Court Case
                     </a>
@@ -122,7 +150,7 @@
                                 {{ session.session_date|date:"F d, Y" }}
                             </h6>
                             <p class="card-text">{{ session.notes }}</p>
-                            <small class="text-muted">Counselor: {{ session.counselor.get_username }}</small>
+                            <small class="text-muted">Counselor: {{ session.counselor.get_full_name }}</small>
                         </div>
                     </div>
                 {% endfor %}
@@ -187,7 +215,7 @@
                                 {{ followup.date_updated|date:"F d, Y" }}
                             </h6>
                             <p class="card-text">{{ followup.update_details }}</p>
-                            <small class="text-muted">Officer: {{ followup.officer.get_username }}</small>
+                            <small class="text-muted">Officer: {{ followup.officer.get_full_name }}</small>
                         </div>
                     </div>
                 {% endfor %}
@@ -196,5 +224,33 @@
             {% endif %}
         </div>
     </div>
+    
+    {% if not user.user_type and case.status == 'reported' %}
+    <div class="card mt-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-0">Withdraw Case</h6>
+                    <p class="text-muted mb-0 small">You can only withdraw a case that is still in the "Reported" status.</p>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+        <a href="{% url 'case_list' %}" class="btn btn-secondary">Back to Case List</a>
+    </div>
 </div>
+
+<script>
+function assignToSelf(caseId) {
+    if (confirm('Are you sure you want to assign this case to yourself?')) {
+        // Add code to handle the self-assignment
+        // This could be a form submission or an AJAX call
+        window.location.href = "{% url 'change_status' case.id %}?assign=self";
+    }
+}
+</script>
 {% endblock %}
