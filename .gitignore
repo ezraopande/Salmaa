@@ -2,7 +2,7 @@
 __pycache__/
 *.pyc
 media
-
+models2.py
 # Ignore all SQLite database files
 *.sqlite
 *.sqlite3

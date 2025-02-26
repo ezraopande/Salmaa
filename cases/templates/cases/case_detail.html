@@ -103,17 +103,26 @@
     <div class="row mb-4">
         <div class="col">
             <div class="btn-group" role="group">
-                {% if user.role in 'officer survivor' %}
+                {% if user.role in 'officer' %}
                     <a href="{% url 'add_counseling_session' case.id %}" class="btn btn-outline-primary">
                         <i class="bi bi-plus-circle"></i> Add Counseling Session
                     </a>
                     <a href="{% url 'add_court_case' case.id %}" class="btn btn-outline-primary">
                         <i class="bi bi-plus-circle"></i> Add Court Case
                     </a>
+                {% endif %}
+                
+                {% if user.role == 'law_enforcement' %}
                     <a href="{% url 'add_police_followup' case.id %}" class="btn btn-outline-primary">
                         <i class="bi bi-plus-circle"></i> Add Follow-up
                     </a>
                 {% endif %}
+                {% if user.role == 'medical_officer' %}
+                    <a href="{% url 'add_police_followup' case.id %}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle"></i> Add Medical report
+                    </a>
+                {% endif %}
+                    
                 <a href="{% url 'upload_case_document' case.id %}" class="btn btn-outline-primary">
                     <i class="bi bi-upload"></i> Upload Document
                 </a>
@@ -122,7 +131,7 @@
     </div>
 
     <!-- Tabs for Different Sections -->
-    {% if user.role == 'officer' %}
+    {% if user.role in 'officer survivor' %}
         
         <ul class="nav nav-tabs mb-4" id="caseTab" role="tablist">
             <li class="nav-item">

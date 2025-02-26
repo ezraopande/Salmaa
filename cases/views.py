@@ -12,9 +12,7 @@ from notifications.models import Notification
 from audit.models import AuditLog  # Import the AuditLog model
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
 from audit.models import AuditLog 
-from django.utils.dateparse import parse_date
 from django.utils import timezone
 from cases.forms import CaseReportForm
 import uuid
@@ -23,8 +21,6 @@ from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 import pandas as pd
 from django.core.exceptions import PermissionDenied
-from django.core.mail import send_mail
-
 @login_required
 def report_case(request):
     """
@@ -43,24 +39,6 @@ def report_case(request):
             
             # Save to DB
             case.save()
-            
-            # Notify law enforcement and providers
-            recipients = User.objects.filter(
-                role__in=["law_enforcement", "provider"]
-            ).values_list("email", flat=True)
-            
-            try:
-                # send_mail(
-                #     "New SGBV Case Reported",
-                #     f"A new case has been reported by {request.user.username}. Case #: {case.case_number}. Please check the system for details.",
-                #     "admin@sarn-sgbv.org",
-                #     list(recipients),
-                #     fail_silently=False,
-                # )
-                pass
-            except Exception as e:
-                # Log the error but don't prevent case from being reported
-                print(f"Email notification failed: {str(e)}")
             
             messages.success(request, f"Case reported successfully. Your case number is {case.case_number}")
             return redirect('case_detail', case_id=case.id)
@@ -291,21 +269,12 @@ def add_court_case(request, case_id):
         if form.is_valid():
             court_case = form.save(commit=False)
             court_case.case = case
-            with transaction.atomic():
-                court_case.save()
-                case.status = 'legal_proceedings'
-                case.save()
-                Notification.objects.create(
-                    case = case,
-                    user = case.survivor,
-                    message = f"A court case has been scheduled for you on {court_case.hearing_date} by {request.user.get_username()}."
-                )
-                AuditLog.objects.create(    
-                    user = request.user,
-                    action = f"added court case for case {case.case_number}"
-                )
-                messages.success(request, 'Court case added successfully')
-                return redirect('case_detail', case_id=case_id)
+            court_case.save()
+            case.status = 'legal_proceedings'
+            case.save()
+            
+            messages.success(request, 'Court case added successfully')
+            return redirect('case_detail', case_id=case_id)
     else:
         form = CourtCaseForm()
     
