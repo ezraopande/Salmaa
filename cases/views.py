@@ -197,17 +197,18 @@ class AssignCaseView(LoginRequiredMixin, UpdateView):
         return context
     
     def get_available_providers(self):
-        return User.objects.filter(role='provider', is_active=True)
+        return User.objects.filter(role='law_enforcement', is_active=True)
     
     def form_valid(self, form):
         case = self.get_object()
-        provider = form.cleaned_data['assigned_provider']
+        provider = form.cleaned_data['assigned_officer']
+        print(provider)
         notes = form.cleaned_data.get('notes', '')
         
         with transaction.atomic():
             # Update case assignment
-            case.assigned_provider = provider
-            if case.status == 'pending':
+            case.assigned_officer = provider
+            if case.status == 'reported':
                 case.status = 'under_investigation'
             case.save()
             
@@ -227,7 +228,7 @@ class AssignCaseView(LoginRequiredMixin, UpdateView):
     
     def notify_provider(self, case, provider):
         Notification.objects.create(
-            user=case.reporter,
+            user=case.survivor,
             case=case,
             message=f"Your case has been assigned to {provider.username}."
         )
@@ -259,7 +260,7 @@ class ChangeCaseStatusView(LoginRequiredMixin, UpdateView):
         case = self.get_object()
         new_status = form.cleaned_data['status']
         notes = form.cleaned_data['status_notes']
-        notify_reporter = form.cleaned_data.get('notify_reporter', False)
+        notify_survivor = form.cleaned_data.get('notify_survivor', False)
         
         with transaction.atomic():
             
@@ -267,15 +268,15 @@ class ChangeCaseStatusView(LoginRequiredMixin, UpdateView):
             case.status = new_status
             case.save()
             
-            if notify_reporter:
-                self.notify_reporter(case, new_status, notes)
+            if notify_survivor:
+                self.notify_survivor(case, new_status, notes)
         
         messages.success(self.request, f'Status for Case #{case.id} has been updated to {case.get_status_display()}')
         return redirect('case_detail', case_id=case.id)
     
-    def notify_reporter(self, case, new_status, notes):
+    def notify_survivor(self, case, new_status, notes):
         Notification.objects.create(
-            user=case.reporter,
+            user=case.survivor,
             case=case,
             message=f"Your case status has been updated to '{new_status}'."
         )
@@ -310,12 +311,12 @@ def add_counseling_session(request, case_id):
         if form.is_valid():
             session = form.save(commit=False)
             session.counselor = request.user
-            session.survivor = case.reporter
+            session.survivor = case.survivor
             session.case = case
             session.save()
             Notification.objects.create(
                 case = case,
-                user = case.reporter,
+                user = case.survivor,
                 message = f"A counseling session has been scheduled for you on {session.session_date} by {request.user.get_username()}."
             )
             AuditLog.objects.create(
@@ -344,7 +345,7 @@ def add_court_case(request, case_id):
             court_case.save()
             Notification.objects.create(
                 case = case,
-                user = case.reporter,
+                user = case.survivor,
                 message = f"A court case has been scheduled for you on {court_case.hearing_date} by {request.user.get_username()}."
             )
             AuditLog.objects.create(    
@@ -375,7 +376,7 @@ def add_police_followup(request, case_id):
             followup.save()
             Notification.objects.create(
                 case = case,
-                user = case.reporter,
+                user = case.survivor,
                 message = f"A follow-up has been scheduled for you on {followup.date_updated} by {request.user.get_username()}."
             )
             AuditLog.objects.create(

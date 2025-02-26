@@ -25,7 +25,7 @@
                         <h6 class="text-muted mb-3">Case Details</h6>
                         <dl class="row">
                             <dt class="col-sm-3">Reporter</dt>
-                            <dd class="col-sm-9">{{ case.reporter.get_full_name }}</dd>
+                            <dd class="col-sm-9">{{ case.reporter.get_username }}</dd>
 
                             <dt class="col-sm-3">Date Reported</dt>
                             <dd class="col-sm-9">{{ case.date_reported|date:"F d, Y H:i" }}</dd>
@@ -39,8 +39,8 @@
 
                             <dt class="col-sm-3">Currently Assigned</dt>
                             <dd class="col-sm-9">
-                                {% if case.assigned_provider %}
-                                    {{ case.assigned_provider.get_full_name }}
+                                {% if case.assigned_oficer %}
+                                    {{ case.assigned_officer.get_username }}
                                 {% else %}
                                     <span class="text-muted">Not assigned</span>
                                 {% endif %}
@@ -62,17 +62,17 @@
 
                         <div class="mb-3">
                             <label for="provider" class="form-label">Assign to Provider</label>
-                            <select name="assigned_provider" id="provider" class="form-select" required>
-                                <option value="">Select a provider...</option>
+                            <select name="assigned_officer" id="provider" class="form-select" required>
+                                <option value="">Select a officer...</option>
                                 {% for provider in providers %}
-                                <option value="{{ provider.id }}" {% if provider.id == case.assigned_provider.id %}selected{% endif %}>
+                                <option value="{{ provider.id }}" {% if provider.id == case.assigned_officer.id %}selected{% endif %}>
                                     {{ provider.username }} (Current Cases: {{ provider.assigned_cases.count }})
                                 </option>
                                 {% endfor %}
                             </select>
-                            {% if form.assigned_provider.errors %}
+                            {% if form.assigned_officer.errors %}
                             <div class="invalid-feedback">
-                                {{ form.assigned_provider.errors|join:", " }}
+                                {{ form.assigned_officer.errors|join:", " }}
                             </div>
                             {% endif %}
                         </div>

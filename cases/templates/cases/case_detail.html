@@ -63,13 +63,13 @@
                     <h6>Case Assignment</h6>
                     <p class="text-muted">
                         {% if case.assigned_officer %}
-                            Assigned to: {{ case.assigned_officer.get_full_name }}
+                            Assigned to: {{ case.assigned_officer.get_username }}
                         {% else %}
                             Not yet assigned
                         {% endif %}
                     </p>
                     
-                    {% if user.user_type == 'officer' %}
+                    {% if user.role == 'officer' %}
                     <div class="mt-4">
                         <h5>Actions</h5>
                         <div class="btn-group">
@@ -79,7 +79,14 @@
                             </button>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{% url 'change_status' case.id %}">Update Status</a></li>
-                                {% if user.user_type == 'law_enforcement' and not case.assigned_officer %}
+                                
+                                {% if not case.assigned_officer %}
+                                <li><a class="dropdown-item" href="{% url 'assign_case' case.id %}">Assign Officer</a></li>
+                                
+                                {% endif %}
+                                    
+                                
+                                {% if user.role == 'law_enforcement' and not case.assigned_officer %}
                                 <li><a class="dropdown-item" href="#" onclick="assignToSelf('{{ case.id }}')">Assign to Self</a></li>
                                 {% endif %}
                             </ul>
@@ -95,12 +102,10 @@
     <div class="row mb-4">
         <div class="col">
             <div class="btn-group" role="group">
-                {% if user.user_type == 'provider' %}
+                {% if user.role == 'officer' %}
                     <a href="{% url 'add_counseling_session' case.id %}" class="btn btn-outline-primary">
                         <i class="bi bi-plus-circle"></i> Add Counseling Session
                     </a>
-                {% endif %}
-                {% if user.user_type == 'law_enforcement' %}
                     <a href="{% url 'add_court_case' case.id %}" class="btn btn-outline-primary">
                         <i class="bi bi-plus-circle"></i> Add Court Case
                     </a>
@@ -225,7 +230,7 @@
         </div>
     </div>
     
-    {% if not user.user_type and case.status == 'reported' %}
+    {% if not user.role and case.status == 'reported' %}
     <div class="card mt-4">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center">

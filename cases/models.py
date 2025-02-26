@@ -39,7 +39,7 @@ class Case(models.Model):
         null=True, 
         blank=True,
         related_name='assigned_cases',
-        limit_choices_to={'user_type': 'law_enforcement'}
+        limit_choices_to={'role': 'law_enforcement'}
     )
     
     # Timestamps
@@ -67,7 +67,7 @@ class LawEnforcementAssignment(models.Model):
         User, 
         on_delete=models.PROTECT, 
         related_name='law_enforcement_cases',
-        limit_choices_to={'user_type': 'law_enforcement'}
+        limit_choices_to={'role': 'law_enforcement'}
     )
     status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='assigned')
     assigned_date = models.DateTimeField(auto_now_add=True)

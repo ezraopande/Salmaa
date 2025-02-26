@@ -65,7 +65,7 @@ def dashboard(request):
             ).count(),
             'assigned_to_me_count': law_assignments.count()
         })
-    elif request.user.role == "sgbv_officer":
+    elif request.user.role == "officer":
         # Get all incidents for law enforcement
         all_incidents = Case.objects.all()
         
