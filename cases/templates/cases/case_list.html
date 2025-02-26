@@ -42,13 +42,13 @@
                 {% for case in cases %}
                 <a href="{% url 'case_detail' case.id %}" class="list-group-item list-group-item-action">
                     <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">Case #{{ case.id }}</h5>
+                        <h5 class="mb-1">Case #{{ case.case_number }}</h5>
                         <small class="text-muted">{{ case.date_reported|date:"M d, Y" }}</small>
                     </div>
                     <p class="mb-1">{{ case.description|truncatewords:30 }}</p>
                     <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">Reported by: {{ case.reporter.get_username }}</small>
-                        <span class="badge {% if case.status == 'pending' %}bg-warning{% elif case.status == 'under_investigation' %}bg-info{% else %}bg-success{% endif %}">
+                        <small class="text-muted">Reported by: {{ case.survivor.get_username }}</small>
+                        <span class="badge {% if case.status == 'reported' %}bg-warning{% elif case.status == 'under_investigation' %}bg-info{% else %}bg-success{% endif %}">
                             {{ case.get_status_display }}
                         </span>
                     </div>

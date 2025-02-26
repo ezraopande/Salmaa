@@ -223,25 +223,25 @@ class AssignCaseView(LoginRequiredMixin, UpdateView):
             # Optionally notify the provider
             self.notify_provider(case, provider)
         
-        messages.success(self.request, f'Case #{case.id} has been assigned to {provider.get_full_name()}')
+        messages.success(self.request, f'Case #{case.number} has been assigned to {provider.get_full_name()}')
         return redirect('case_detail', case_id=case.id)
     
     def notify_provider(self, case, provider):
         Notification.objects.create(
             user=case.survivor,
             case=case,
-            message=f"Your case has been assigned to {provider.username}."
+            message=f"Your case ({case.case_number}) has been assigned to {provider.username}."
         )
         
         Notification.objects.create(
             user=provider,
             case=case,
-            message=f"You have been assigned to case #{case.id}."
+            message=f"You have been assigned to case #{case.case_number}."
         )
         
         AuditLog.objects.create(
             user=self.request.user,
-            action=f"assigned case {case.id} to {provider.username}"
+            action=f"assigned case {case.case_number} to {provider.username}"
         )
 
 class ChangeCaseStatusView(LoginRequiredMixin, UpdateView):
@@ -301,8 +301,8 @@ def case_detail(request, case_id):
 
 @login_required
 def add_counseling_session(request, case_id):
-    if request.user.role != 'provider':
-        raise PermissionDenied("Only providers can add counseling sessions")
+    if request.user.role != 'officer':
+        raise PermissionDenied("Only officers can add counseling sessions")
     
     case = get_object_or_404(Case, id=case_id)
     
@@ -321,7 +321,7 @@ def add_counseling_session(request, case_id):
             )
             AuditLog.objects.create(
                 user = request.user,
-                action = f"added counseling session for case {case.id}"
+                action = f"added counseling session for case {case.case_number}"
             )
             messages.success(request, 'Counseling session added successfully')
             return redirect('case_detail', case_id=case_id)
@@ -418,8 +418,8 @@ def court_cases(request):
 
 @login_required
 def counseling_sessions(request):
-    if request.user.role == 'provider':
-        sessions = CounselingSession.objects.filter(counselor=request.user).order_by('-session_date')
+    if request.user.role == 'officer':
+        sessions = CounselingSession.objects.all().order_by('-session_date')
     elif request.user.role == 'survivor':
         sessions = CounselingSession.objects.filter(survivor=request.user).order_by('-session_date')
     else:

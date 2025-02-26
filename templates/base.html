@@ -305,7 +305,7 @@
                                 Dashboard
                             </a>
                         </li>
-                        {% if user.role in "provider law_enforcement" %}
+                        {% if user.role in "officer law_enforcement" %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'case_list' %}">
                                 Case Management
@@ -319,7 +319,7 @@
                             </a>
                         </li>
                         {% endif %}
-                        {% if user.role == "law_enforcement" %}
+                        {% if user.role == "officer" %}
                         <!-- <li class="nav-item">
                             <a class="nav-link" href="{% url 'court_cases' %}">
                                 Court Cases
