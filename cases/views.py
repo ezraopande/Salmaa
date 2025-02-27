@@ -21,6 +21,8 @@ from django.http import HttpResponse
 from reportlab.pdfgen import canvas
 import pandas as pd
 from django.core.exceptions import PermissionDenied
+
+
 @login_required
 def report_case(request):
     """
@@ -49,12 +51,8 @@ def report_case(request):
     
     return render(request, 'cases/report_case.html', {'form': form})
 
-
-
-
 @login_required
 def case_list(request):
-    # Determine the cases based on the user's role
     if request.user.role == "officer":
         cases = Case.objects.all()
     elif request.user.role == "law_enforcement":
@@ -82,7 +80,6 @@ def case_list(request):
 
     return render(request, 'cases/case_list.html', context)
 
-
 def anonymous_report_case(request):
     if request.method == "POST":
         description = request.POST["description"]
@@ -90,7 +87,6 @@ def anonymous_report_case(request):
         return redirect('case_list')
 
     return render(request, 'cases/anonymous_report.html')
-
 
 def case_statistics(request):
     if request.user.role not in ["law_enforcement", "provider"]:
@@ -169,32 +165,64 @@ class AssignCaseView(LoginRequiredMixin, UpdateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Get all providers who can be assigned cases
-        context['providers'] = self.get_available_providers()
+        # Get all officers who can be assigned cases
+        context['officers'] = self.get_available_officers()
+        context['medics'] = self.get_available_medics()
         context['case'] = self.get_object()
         return context
     
-    def get_available_providers(self):
+    def get_available_officers(self):
         return User.objects.filter(role='law_enforcement', is_active=True)
+    
+    def get_available_medics(self):
+        return User.objects.filter(role='medical_officer', is_active=True)
     
     def form_valid(self, form):
         case = self.get_object()
-        provider = form.cleaned_data['assigned_officer']
-        print(provider)
+        assigned_officer = form.cleaned_data.get('assigned_officer')
+        assigned_medic = form.cleaned_data.get('assigned_medic')
         notes = form.cleaned_data.get('notes', '')
+        status_changed = False
         
         with transaction.atomic():
-            # Update case assignment
-            case.assigned_officer = provider
-            if case.status == 'reported':
-                case.status = 'under_investigation'
+            # Update officer assignment if it changed
+            if assigned_officer != case.assigned_officer:
+                case.assigned_officer = assigned_officer
+                if assigned_officer and case.status == 'reported':
+                    case.status = 'under_investigation'
+                    status_changed = True
+            
+            # Update medic assignment if it changed
+            if assigned_medic != case.assigned_medic:
+                case.assigned_medic = assigned_medic
+                if assigned_medic and case.status == 'reported' and not status_changed:
+                    case.status = 'medical_examination'
+                    status_changed = True
+            
             case.save()
             
-        
-        messages.success(self.request, f'Case #{case.number} has been assigned to {provider.get_full_name()}')
+            # Create assignment notes if provided
+            if notes:
+                # Assuming you have a CaseNote model or similar to record notes
+                # CaseNote.objects.create(
+                #     case=case,
+                #     user=self.request.user,
+                #     note=notes,
+                #     note_type='assignment'
+                # )
+                pass
+            
+            # Success message based on assignments
+            message_parts = []
+            if assigned_officer:
+                message_parts.append(f"Officer: {assigned_officer.get_full_name()}")
+            if assigned_medic:
+                message_parts.append(f"Medical Officer: {assigned_medic.get_full_name()}")
+                
+            assignments = " and ".join(message_parts)
+            messages.success(self.request, f'Case #{case.case_number} has been assigned to {assignments}')
+            
         return redirect('case_detail', case_id=case.id)
-    
-
 
 class ChangeCaseStatusView(LoginRequiredMixin, UpdateView):
     model = Case

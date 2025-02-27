@@ -80,11 +80,8 @@
                             </button>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{% url 'change_status' case.id %}">Update Status</a></li>
-                                
-                                {% if not case.assigned_officer %}
+            
                                 <li><a class="dropdown-item" href="{% url 'assign_case' case.id %}">Assign Officer</a></li>
-                                
-                                {% endif %}
                                     
                                 
                                 {% if user.role == 'law_enforcement' and not case.assigned_officer %}

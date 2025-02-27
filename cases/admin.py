@@ -6,11 +6,11 @@ class CaseDocumentInline(admin.TabularInline):
     extra = 1  # Allow adding new documents inline
 
 
-'''@admin.register(Case)
+@admin.register(Case)
 class CaseAdmin(admin.ModelAdmin):
-    list_display = ("id", "reporter", "status", "date_reported", "assigned_provider")
-    list_filter = ("status", "date_reported")
-    search_fields = ("reporter__username", "description")
+    list_display = ("id", "survivor", "status", "incident_date", "incident_type", "assigned_officer", "assigned_medic")
+    list_filter = ("status", "incident_date", "incident_type")
+    search_fields = ("survivor__username", "description")
     inlines = [CaseDocumentInline]
     actions = ["mark_as_under_investigation", "mark_as_resolved"]
 
@@ -21,7 +21,7 @@ class CaseAdmin(admin.ModelAdmin):
     def mark_as_resolved(self, request, queryset):
         queryset.update(status="resolved")
     mark_as_resolved.short_description = "Mark selected cases as Resolved"
-'''
+
 
 @admin.register(PoliceFollowUp)
 class PoliceFollowUpAdmin(admin.ModelAdmin):

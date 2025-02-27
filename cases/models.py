@@ -41,6 +41,14 @@ class Case(models.Model):
         related_name='assigned_cases',
         limit_choices_to={'role': 'law_enforcement'}
     )
+    assigned_medic = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='assigned_medic',
+        limit_choices_to={'role': 'medical_officer'}
+    )
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)

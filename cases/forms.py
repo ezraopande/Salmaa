@@ -32,7 +32,18 @@ class CaseAssignmentForm(forms.ModelForm):
     
     class Meta:
         model = Case
-        fields = ['assigned_officer']
+        fields = ['assigned_officer', 'assigned_medic']
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        assigned_officer = cleaned_data.get('assigned_officer')
+        assigned_medic = cleaned_data.get('assigned_medic')
+        
+        # Ensure at least one provider is assigned
+        if not assigned_officer and not assigned_medic:
+            raise forms.ValidationError("You must assign at least one officer or medical officer to the case.")
+            
+        return cleaned_data
 
 class StatusChangeForm(forms.ModelForm):
     status_notes = forms.CharField(widget=forms.Textarea)

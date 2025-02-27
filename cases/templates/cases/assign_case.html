@@ -32,15 +32,24 @@
 
                             <dt class="col-sm-3">Current Status</dt>
                             <dd class="col-sm-9">
-                                <span class="badge {% if case.status == 'pending' %}bg-warning{% elif case.status == 'under_investigation' %}bg-info{% else %}bg-success{% endif %}">
+                                <span class="badge {% if case.status == 'reported' %}bg-warning{% elif case.status == 'under_investigation' %}bg-info{% else %}bg-success{% endif %}">
                                     {{ case.get_status_display }}
                                 </span>
                             </dd>
 
-                            <dt class="col-sm-3">Currently Assigned</dt>
+                            <dt class="col-sm-3">Assigned Officer</dt>
                             <dd class="col-sm-9">
-                                {% if case.assigned_oficer %}
+                                {% if case.assigned_officer %}
                                     {{ case.assigned_officer.get_username }}
+                                {% else %}
+                                    <span class="text-muted">Not assigned</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-3">Assigned Medic</dt>
+                            <dd class="col-sm-9">
+                                {% if case.assigned_medic %}
+                                    {{ case.assigned_medic.get_username }}
                                 {% else %}
                                     <span class="text-muted">Not assigned</span>
                                 {% endif %}
@@ -61,18 +70,35 @@
                         {% endif %}
 
                         <div class="mb-3">
-                            <label for="provider" class="form-label">Assign to Provider</label>
-                            <select name="assigned_officer" id="provider" class="form-select" required>
-                                <option value="">Select a officer...</option>
-                                {% for provider in providers %}
-                                <option value="{{ provider.id }}" {% if provider.id == case.assigned_officer.id %}selected{% endif %}>
-                                    {{ provider.username }} (Current Cases: {{ provider.assigned_cases.count }})
+                            <label for="officer" class="form-label">Assign to Officer</label>
+                            <select name="assigned_officer" id="officer" class="form-select">
+                                <option value="">Select an officer...</option>
+                                {% for officer in officers %}
+                                <option value="{{ officer.id }}" {% if officer.id == case.assigned_officer.id %}selected{% endif %}>
+                                    {{ officer.username }} (Current Cases: {{ officer.assigned_cases.count }})
                                 </option>
                                 {% endfor %}
                             </select>
                             {% if form.assigned_officer.errors %}
                             <div class="invalid-feedback">
                                 {{ form.assigned_officer.errors|join:", " }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="medic" class="form-label">Assign to Medical Officer</label>
+                            <select name="assigned_medic" id="medic" class="form-select">
+                                <option value="">Select a medical officer...</option>
+                                {% for medic in medics %}
+                                <option value="{{ medic.id }}" {% if medic.id == case.assigned_medic.id %}selected{% endif %}>
+                                    {{ medic.username }} (Current Cases: {{ medic.assigned_medic.count }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.assigned_medic.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.assigned_medic.errors|join:", " }}
                             </div>
                             {% endif %}
                         </div>
@@ -92,24 +118,50 @@
 
                 <div class="col-md-4">
                     <!-- Provider Workload -->
-                    <div class="card">
+                    <div class="card mb-4">
                         <div class="card-header">
-                            <h6 class="mb-0">Provider Workload</h6>
+                            <h6 class="mb-0">Officer Workload</h6>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
                                 <table class="table table-sm">
                                     <thead>
                                         <tr>
-                                            <th>Provider</th>
+                                            <th>Officer</th>
                                             <th>Active Cases</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for provider in providers %}
+                                        {% for officer in officers %}
                                         <tr>
-                                            <td>{{ provider.username }}</td>
-                                            <td>{{ provider.assigned_cases.count }}</td>
+                                            <td>{{ officer.username }}</td>
+                                            <td>{{ officer.assigned_cases.count }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Medical Officer Workload</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Medical Officer</th>
+                                            <th>Active Cases</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for medic in medics %}
+                                        <tr>
+                                            <td>{{ medic.username }}</td>
+                                            <td>{{ medic.assigned_medic.count }}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
