@@ -83,15 +83,15 @@ def dashboard(request):
                 .annotate(count=Count('id')),
             'unassigned_cases': all_incidents.filter(assigned_officer=None).count()
         })
-    elif request.user.role == "medical_examiner":
+    elif request.user.role == "medical_officer":
         # Get cases for medical examiner (cases in medical examination status)
-        medical_cases = Case.objects.filter(status='medical_examination')
+        medical_cases = Case.objects.filter(assigned_medic=request.user)
         context.update({
             'pending_count': medical_cases.filter(status='reported').count(),
             'investigation_count': medical_cases.count(),
-            'closed_count': Case.objects.filter(status='closed').count(),
+            'closed_count': medical_cases.filter(status='closed').count(),
             'recent_cases': medical_cases.order_by('-report_date')[:5],
-            'user_role': 'medical_examiner',
+            'user_role': 'medical_officer',
             'total_cases': medical_cases.count()
         })
     else:

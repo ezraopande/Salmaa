@@ -63,8 +63,13 @@
                     
                     <h6>Case Assignment</h6>
                     <p class="text-muted">
-                        {% if case.assigned_officer %}
-                            Assigned to: {{ case.assigned_officer.get_username }}
+                        {% if case.assigned_officer and case.assigned_medic %}
+                            Assigned officer: {{ case.assigned_officer.get_username }} <br>
+                            Assigned medic: {{ case.assigned_medic.username }}
+                        {% elif case.assigned_officer %}
+                            Assigned officer: {{ case.assigned_officer.get_username }}
+                        {% elif case.assigned_medic %}
+                            Assigned medic: {{ case.assigned_medic.username }}
                         {% else %}
                             Not yet assigned
                         {% endif %}
@@ -114,14 +119,15 @@
                         <i class="bi bi-plus-circle"></i> Add Follow-up
                     </a>
                 {% endif %}
-                {% if user.role == 'medical_officer' %}
-                    <a href="{% url 'add_police_followup' case.id %}" class="btn btn-outline-primary">
-                        <i class="bi bi-plus-circle"></i> Add Medical report
-                    </a>
-                {% endif %}
                     
                 <a href="{% url 'upload_case_document' case.id %}" class="btn btn-outline-primary">
-                    <i class="bi bi-upload"></i> Upload Document
+                    <i class="bi bi-upload"></i> 
+                    {% if user.role == 'medical_officer' %}
+                        Add Medical Report
+                    {% else %}
+                        Upload Document
+                    {% endif %}
+                    
                 </a>
             </div>
         </div>

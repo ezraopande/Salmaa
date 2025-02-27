@@ -437,6 +437,11 @@ def case_documents(request):
         documents = CaseDocument.objects.filter(
             case__assigned_officer=request.user
         ).distinct()
+    elif request.user.role == 'medical_officer':
+        # Service providers see documents for cases they're counseling
+        documents = CaseDocument.objects.filter(
+            case__assigned_medic=request.user
+        ).distinct()
     else:
         documents = CaseDocument.objects.none()
 

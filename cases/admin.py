@@ -8,7 +8,7 @@ class CaseDocumentInline(admin.TabularInline):
 
 @admin.register(Case)
 class CaseAdmin(admin.ModelAdmin):
-    list_display = ("id", "survivor", "status", "incident_date", "incident_type", "assigned_officer", "assigned_medic")
+    list_display = ("case_number", "survivor", "status", "incident_date", "incident_type", "assigned_officer", "assigned_medic")
     list_filter = ("status", "incident_date", "incident_type")
     search_fields = ("survivor__username", "description")
     inlines = [CaseDocumentInline]

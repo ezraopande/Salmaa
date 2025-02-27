@@ -15,7 +15,13 @@
 
     <div class="card">
         <div class="card-header bg-white">
-            <h5 class="mb-0">Upload Case Document</h5>
+            <h5 class="mb-0">Upload 
+            {% if user.role == 'medical_officer' %}
+                Medical Report Document
+            {% else %}
+                Case Document
+            {% endif %}
+                </h5>
         </div>
         <div class="card-body">
             <form method="post" enctype="multipart/form-data">
