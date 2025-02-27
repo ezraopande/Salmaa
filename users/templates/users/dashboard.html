@@ -249,12 +249,12 @@
                             </span>
                         </td>
                         {% if user_role != 'survivor' %}
-                        <td>{{ case.survivor.get_full_name }}</td>
+                        <td>{{ case.survivor.get_username }}</td>
                         {% endif %}
                         {% if user_role == 'law_enforcement' %}
                         <td>
                             {% if case.assigned_officer %}
-                                {{ case.assigned_officer.get_full_name }}
+                                {{ case.assigned_officer.get_username }}
                             {% else %}
                                 <span class="text-muted">Unassigned</span>
                             {% endif %}

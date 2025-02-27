@@ -155,7 +155,7 @@ def law_enforcement_assignment_post_save(sender, instance, created, **kwargs):
     """
     Signal to handle actions after a LawEnforcementAssignment is created or updated
     """
-    case = instance.incident
+    case = instance.case
     officer = instance.officer
     
     if created:

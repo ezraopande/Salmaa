@@ -4,9 +4,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import UpdateView
 from django.contrib import messages
 from django.db import transaction
-from .forms import CaseAssignmentForm, CounselingSessionForm, CourtCaseForm, PoliceFollowUpForm, StatusChangeForm
+from .forms import CaseAssignmentForm, CounselingSessionForm, CourtCaseForm, PoliceFollowUpForm, StatusChangeForm, UpdatePoliceStatusForm
 from users.models import User
-from .models import Case, CaseDocument, CounselingSession, CourtCase, PoliceFollowUp
+from .models import Case, CaseDocument, CounselingSession, CourtCase, LawEnforcementAssignment, PoliceFollowUp
 from django.shortcuts import render, redirect, get_object_or_404
 from notifications.models import Notification
 from audit.models import AuditLog  # Import the AuditLog model
@@ -187,6 +187,9 @@ class AssignCaseView(LoginRequiredMixin, UpdateView):
         with transaction.atomic():
             # Update officer assignment if it changed
             if assigned_officer != case.assigned_officer:
+                LawEnforcementAssignment.objects.create(
+                    case = case, officer = assigned_officer
+                )
                 case.assigned_officer = assigned_officer
                 if assigned_officer and case.status == 'reported':
                     case.status = 'under_investigation'
@@ -258,7 +261,7 @@ def case_detail(request, case_id):
         'counseling_sessions': CounselingSession.objects.filter(Q(survivor=case.survivor) & Q(case=case) ).order_by('-session_date'),
         'court_cases': CourtCase.objects.filter(case=case).order_by('-hearing_date'),
         'documents': CaseDocument.objects.filter(case=case).order_by('-uploaded_at'),
-        'follow_ups': PoliceFollowUp.objects.filter(case=case).order_by('-date_updated'),
+        'follow_ups': LawEnforcementAssignment.objects.filter(case=case).order_by('-updated_at'),
     }
     return render(request, 'cases/case_detail.html', context)
 
@@ -310,35 +313,120 @@ def add_court_case(request, case_id):
 
 @login_required
 def add_police_followup(request, case_id):
+    # Check if user is law enforcement
     if request.user.role != 'law_enforcement':
-        messages.error(request, "Only law enforcement")
-        raise PermissionDenied("Only law enforcement can add follow-ups")
+        messages.error(request, "Only law enforcement officers can add follow-ups")
+        raise PermissionDenied("Only law enforcement officers can add follow-ups")
     
     case = get_object_or_404(Case, id=case_id)
     
+    # Check if this officer is assigned to the case
+    try:
+        assignment = LawEnforcementAssignment.objects.get(case=case, officer=request.user)
+    except LawEnforcementAssignment.DoesNotExist:
+        messages.error(request, "You are not assigned to this case")
+        return redirect('case_detail', case_id=case_id)
+    
     if request.method == 'POST':
-        form = PoliceFollowUpForm(request.POST)
+        form = PoliceFollowUpForm(request.POST, instance=assignment)
         if form.is_valid():
             followup = form.save(commit=False)
             followup.case = case
             followup.officer = request.user
             followup.save()
+            
+            # Create notification for the survivor
             Notification.objects.create(
-                case = case,
-                user = case.survivor,
-                message = f"A follow-up has been scheduled for you on {followup.date_updated} by {request.user.get_username()}."
+                case=case,
+                user=case.survivor,
+                message=f"A follow-up has been scheduled for you on {followup.follow_up_date.strftime('%B %d, %Y at %H:%M')} by {request.user.get_full_name()}."
             )
+            
+            # Log the action
             AuditLog.objects.create(
-                user = request.user,
-                action = f"added follow-up for case {case.id}"
+                user=request.user,
+                action=f"added follow-up for case {case.id}"
             )
+            
             messages.success(request, 'Follow-up added successfully')
             return redirect('case_detail', case_id=case_id)
     else:
-        form = PoliceFollowUpForm()
+        form = PoliceFollowUpForm(instance=assignment)
     
     return render(request, 'cases/add_followup.html', {'form': form, 'case': case})
 
+
+@login_required
+def update_police_status(request, assignment_id):
+    # Check if user is law enforcement
+    if request.user.role != 'law_enforcement':
+        messages.error(request, "Only law enforcement officers can update case status")
+        raise PermissionDenied("Only law enforcement officers can update case status")
+    
+    # Get the assignment and verify the officer is the creator
+    assignment = get_object_or_404(LawEnforcementAssignment, id=assignment_id)
+    
+    # Check if this officer created the assignment
+    if assignment.officer != request.user:
+        messages.error(request, "You can only update status for cases you are assigned to")
+        return redirect('case_detail', case_id=assignment.case.id)
+    
+    if request.method == 'POST':
+        form = UpdatePoliceStatusForm(request.POST, instance=assignment)
+        if form.is_valid():
+            previous_status = assignment.status
+            status_update = form.save(commit=False)
+            status_update.save()
+            
+            # Update the main case status if needed
+            case = assignment.case
+            if status_update.status == 'closed':
+                # Check if there are any other open assignments
+                open_assignments = case.law_enforcement_assignments.exclude(
+                    id=assignment.id
+                ).exclude(
+                    status='closed'
+                ).exists()
+                
+                if not open_assignments:
+                    # If no other open assignments, update case status
+                    case.status = 'closed'
+                    case.save()
+            
+            # Create notification for the survivor
+            Notification.objects.create(
+                case=case,
+                user=case.survivor,
+                message=f"Your case status has been updated from '{dict(LawEnforcementAssignment.STATUS_CHOICES)[previous_status]}' to '{dict(LawEnforcementAssignment.STATUS_CHOICES)[status_update.status]}' by {request.user.get_full_name()}."
+            )
+            
+            # Log the action
+            AuditLog.objects.create(
+                user=request.user,
+                action=f"updated status for case {case.id} from '{previous_status}' to '{status_update.status}'"
+            )
+            
+            messages.success(request, 'Status updated successfully')
+            return redirect('case_detail', case_id=assignment.case.id)
+    else:
+        form = UpdatePoliceStatusForm(instance=assignment)
+    
+    return render(request, 'cases/update_police_status.html', {'form': form, 'assignment': assignment, 'case': assignment.case})
+
+
+# You can also add a view to list all follow-ups for a case
+@login_required
+def police_followups(request, case_id):
+    case = get_object_or_404(Case, id=case_id)
+    
+    # For law enforcement, show all assignments for this case
+    if request.user.role == 'law_enforcement':
+        assignments = LawEnforcementAssignment.objects.filter(case=case).order_by('-updated_at')
+    else:
+        # For other users, show limited information
+        assignments = LawEnforcementAssignment.objects.filter(case=case).order_by('-updated_at')
+    
+    return render(request, 'cases/police_followups.html', {'case': case, 'assignments': assignments})
 @login_required
 def upload_case_document(request, case_id):
     case = get_object_or_404(Case, id=case_id)
@@ -377,7 +465,7 @@ def counseling_sessions(request):
     return render(request, 'cases/counseling_sessions.html', {'page_obj': page_obj, 'now' : now()})
 
 @login_required
-def police_followups(request):
+def polices_followups(request):
     now = timezone.now()
     
     # Filter based on user role

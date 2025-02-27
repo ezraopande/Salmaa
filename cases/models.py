@@ -70,7 +70,7 @@ class LawEnforcementAssignment(models.Model):
         ('closed', 'Closed'),
     )
     
-    incident = models.ForeignKey(Case, on_delete=models.CASCADE, related_name='law_enforcement_assignments')
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name='law_enforcement_assignments')
     officer = models.ForeignKey(
         User, 
         on_delete=models.PROTECT, 
@@ -80,13 +80,14 @@ class LawEnforcementAssignment(models.Model):
     status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='assigned')
     assigned_date = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True, null=True)
+    update_details = models.TextField(blank=True, null=True)
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"LE Assignment for Case #{self.incident.case_number}"
+        return f"LE Assignment for Case #{self.case.case_number}"
 class CaseDocument(models.Model):
     title = models.CharField(max_length=255)
     case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name="documents")

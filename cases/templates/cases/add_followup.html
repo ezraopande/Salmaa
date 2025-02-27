@@ -1,14 +1,13 @@
 {% extends 'base.html' %}
 
+{% block title %}Add Police Follow-up - SARN SGBV Management System{% endblock %}
+
 {% block content %}
-
-
-<!-- add_followup.html -->
-{% if user.role == 'law_enforcement' %}
 <div class="container-fluid">
-    <nav aria-label="breadcrumb">
+    <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'case_list' %}">Cases</a></li>
             <li class="breadcrumb-item"><a href="{% url 'case_detail' case.id %}">Case #{{ case.id }}</a></li>
             <li class="breadcrumb-item active">Add Police Follow-up</li>
         </ol>
@@ -19,18 +18,102 @@
             <h5 class="mb-0">Add Police Follow-up</h5>
         </div>
         <div class="card-body">
-            <form method="post">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="update_details" class="form-label">Update Details</label>
-                    {{ form.update_details }}
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- Case Information -->
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">Case Details</h6>
+                        <dl class="row">
+                            <dt class="col-sm-3">Case Number</dt>
+                            <dd class="col-sm-9">#{{ case.case_number }}</dd>
+
+                            <dt class="col-sm-3">Current Status</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge {% if case.status == 'reported' %}bg-warning{% elif case.status == 'under_investigation' %}bg-info{% else %}bg-success{% endif %}">
+                                    {{ case.get_status_display }}
+                                </span>
+                            </dd>
+
+                            <dt class="col-sm-3">Date Reported</dt>
+                            <dd class="col-sm-9">{{ case.report_date|date:"F d, Y H:i" }}</dd>
+                        </dl>
+                    </div>
+
+                    <!-- Follow-up Form -->
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="follow_up_date" class="form-label">Follow-up Date and Time</label>
+                            {{ form.follow_up_date }}
+                            {% if form.follow_up_date.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.follow_up_date.errors|join:", " }}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">{{ form.follow_up_date.help_text }}</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="update_details" class="form-label">Update Details</label>
+                            {{ form.update_details }}
+                            {% if form.update_details.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.update_details.errors|join:", " }}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">{{ form.update_details.help_text }}</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'case_detail' case.id %}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Follow-up</button>
+                        </div>
+                    </form>
                 </div>
-                <button type="submit" class="btn btn-primary">Save Follow-up</button>
-                <a href="{% url 'case_detail' case.id %}" class="btn btn-outline-secondary">Cancel</a>
-            </form>
+
+                <div class="col-md-4">
+                    <!-- Previous Follow-ups -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Previous Follow-ups</h6>
+                        </div>
+                        <div class="card-body">
+                            {% with previous_followups=case.law_enforcement_assignments.all %}
+                                {% if previous_followups %}
+                                    <div class="list-group list-group-flush">
+                                        {% for followup in previous_followups|slice:":5" %}
+                                            <div class="list-group-item px-0">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <small class="text-muted">{{ followup.updated_at|date:"M d, Y" }}</small>
+                                                    <span class="badge bg-secondary">{{ followup.get_status_display }}</span>
+                                                </div>
+                                                <p class="mb-0 mt-1">{{ followup.update_details|truncatechars:100 }}</p>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% if previous_followups.count > 5 %}
+                                        <div class="text-center mt-3">
+                                            <a href="{% url 'police_followup_list' case.id %}" class="btn btn-sm btn-outline-primary">View All Follow-ups</a>
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <p class="text-muted mb-0">No previous follow-ups recorded.</p>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-{% endif %}
-
 {% endblock %}

@@ -1,128 +1,80 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Police Follow-ups - SARN SGBV Management System{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Police Follow-ups</h2>
-        {% if user.role == 'law_enforcement' %}
-        <button class="btn btn-primary" data-bs-toggle="" data-bs-target="#newFollowupModal">
-            <i class="fas fa-plus"></i>
-        </button>
-        {% endif %}
-    </div>
-
-    <!-- Search Bar -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <form method="get" class="input-group">
-                <input type="text" 
-                    name="search" 
-                    class="form-control" 
-                    placeholder="Search follow-ups..." 
-                    value="{{ search_query }}">
-                <button class="btn btn-primary" type="submit">
-                    <i class="fas fa-search"></i> Search
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Follow-ups Grid -->
-    {% if page_obj %}
-    <div class="row">
-        {% for followup in page_obj %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Case #{{ followup.case.id }}</h5>
-                    <span class="badge bg-primary">{{ followup.date_updated|timesince }} ago</span>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted mb-2">
-                        <i class="fas fa-user-shield"></i> Officer: {{ followup.officer.get_username }}
-                    </p>
-                    <p class="card-text">{{ followup.update_details|truncatechars:200 }}</p>
-                </div>
-                <div class="card-footer bg-transparent">
-                    <div class="btn-group">
-                        <a href="#" class="btn btn-sm btn-info">
-                            <i class="fas fa-eye"></i> View Details
-                        </a>
-                        {% if user.role == 'law_enforcement' and followup.officer == user %}
-                        <a href="#" class="btn btn-sm btn-primary">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-
-    <!-- Pagination -->
-    {% if page_obj.has_other_pages %}
-    <nav aria-label="Follow-ups pagination" class="mt-4">
-        <ul class="pagination justify-content-center">
-            {% if page_obj.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
-                    Previous
-                </a>
-            </li>
-            {% endif %}
-
-            {% for i in page_obj.paginator.page_range %}
-            <li class="page-item {% if page_obj.number == i %}active{% endif %}">
-                <a class="page-link" href="?page={{ i }}{% if search_query %}&search={{ search_query }}{% endif %}">
-                    {{ i }}
-                </a>
-            </li>
-            {% endfor %}
-
-            {% if page_obj.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
-                    Next
-                </a>
-            </li>
-            {% endif %}
-        </ul>
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'case_list' %}">Cases</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'case_detail' case.id %}">Case #{{ case.case_number }}</a></li>
+            <li class="breadcrumb-item active">Police Follow-ups</li>
+        </ol>
     </nav>
-    {% endif %}
-    {% else %}
-    <div class="alert alert-info">
-        No follow-ups found.
-        {% if user.role == 'law_enforcement' %}
-        <button class="btn btn-primary btn-sm ms-3" data-bs-toggle="modal" data-bs-target="#newFollowupModal">
-            Create New Follow-up
-        </button>
-        {% endif %}
-    </div>
-    {% endif %}
-</div>
 
-<!-- New Follow-up Modal -->
-{% if user.role == 'law_enforcement' %}
-<div class="modal fade" id="newFollowupModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">New Follow-up</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="post" action="">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <!-- Add form fields here -->
+    <div class="card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Police Follow-ups for Case #{{ case.case_number }}</h5>
+            {% if user.role == 'law_enforcement' %}
+                <a href="{% url 'add_police_followup' case.id %}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i> Add Follow-up
+                </a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if assignments %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Officer</th>
+                                <th>Status</th>
+                                <th>Follow-up Details</th>
+                                {% if user.role == 'law_enforcement' %}
+                                    <th>Actions</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assignment in assignments %}
+                                <tr>
+                                    <td>{{ assignment.updated_at|date:"M d, Y H:i" }}</td>
+                                    <td>{{ assignment.officer.get_username }}</td>
+                                    <td>
+                                        <span class="badge {% if assignment.status == 'assigned' %}bg-warning{% elif assignment.status == 'investigating' %}bg-info{% elif assignment.status == 'suspect_apprehended' %}bg-primary{% elif assignment.status == 'case_filed' %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {{ assignment.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if assignment.follow_up_date %}
+                                            <strong>Follow-up Date:</strong> {{ assignment.follow_up_date|date:"M d, Y H:i" }}<br>
+                                        {% endif %}
+                                        {% if assignment.update_details %}
+                                            {{ assignment.update_details|linebreaksbr }}
+                                        {% endif %}
+                                    </td>
+                                    {% if user.role == 'law_enforcement' %}
+                                        <td>
+                                            {% if assignment.officer == user %}
+                                                <a href="{% url 'update_police_status' assignment.id %}" class="btn btn-sm btn-outline-primary">
+                                                    Update Status
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Follow-up</button>
+            {% else %}
+                <div class="alert alert-info">
+                    No follow-ups have been recorded for this case.
                 </div>
-            </form>
+            {% endif %}
         </div>
     </div>
 </div>
-{% endif %}
 {% endblock %}

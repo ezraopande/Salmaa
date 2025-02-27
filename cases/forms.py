@@ -1,6 +1,6 @@
 # forms.py
 from django import forms
-from .models import Case, PoliceFollowUp, CounselingSession, CaseDocument, CourtCase
+from .models import Case, PoliceFollowUp, CounselingSession, CaseDocument, CourtCase, LawEnforcementAssignment
 
 
 class CaseReportForm(forms.ModelForm):
@@ -54,9 +54,37 @@ class StatusChangeForm(forms.ModelForm):
         fields = ['status']
         
 class PoliceFollowUpForm(forms.ModelForm):
+    follow_up_date = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        required=True,
+        help_text="When will the follow-up happen?"
+    )
+    update_details = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 4}),
+        required=True,
+        help_text="Provide details about this follow-up"
+    )
+    
     class Meta:
-        model = PoliceFollowUp
-        fields = ['update_details']
+        model = LawEnforcementAssignment
+        fields = ['update_details', 'follow_up_date']
+
+
+class UpdatePoliceStatusForm(forms.ModelForm):
+    status = forms.ChoiceField(
+        choices=LawEnforcementAssignment.STATUS_CHOICES,
+        required=True,
+        help_text="Update the current status of this case"
+    )
+    notes = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 4}),
+        required=True,
+        help_text="Provide details about this status update"
+    )
+    
+    class Meta:
+        model = LawEnforcementAssignment
+        fields = ['status', 'notes']
         
 class CounselingSessionForm(forms.ModelForm):
     class Meta:
