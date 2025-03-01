@@ -414,19 +414,6 @@ def update_police_status(request, assignment_id):
     return render(request, 'cases/update_police_status.html', {'form': form, 'assignment': assignment, 'case': assignment.case})
 
 
-# You can also add a view to list all follow-ups for a case
-@login_required
-def police_followups(request, case_id):
-    case = get_object_or_404(Case, id=case_id)
-    
-    # For law enforcement, show all assignments for this case
-    if request.user.role == 'law_enforcement':
-        assignments = LawEnforcementAssignment.objects.filter(case=case).order_by('-updated_at')
-    else:
-        # For other users, show limited information
-        assignments = LawEnforcementAssignment.objects.filter(case=case).order_by('-updated_at')
-    
-    return render(request, 'cases/police_followups.html', {'case': case, 'assignments': assignments})
 @login_required
 def upload_case_document(request, case_id):
     case = get_object_or_404(Case, id=case_id)
@@ -463,51 +450,6 @@ def counseling_sessions(request):
     page_obj = paginator.get_page(page_number)
     
     return render(request, 'cases/counseling_sessions.html', {'page_obj': page_obj, 'now' : now()})
-
-@login_required
-def polices_followups(request):
-    now = timezone.now()
-    
-    # Filter based on user role
-    if request.user.role == 'law_enforcement':
-        # Police officers see followups they created
-        followups = PoliceFollowUp.objects.filter(
-            officer=request.user
-        ).select_related('case', 'officer').order_by('-date_updated')
-    elif request.user.role == 'survivor':
-        # Survivors see followups related to their cases
-        followups = PoliceFollowUp.objects.filter(
-            case__survivor=request.user
-        ).select_related('case', 'officer').order_by('-date_updated')
-    elif request.user.role == 'provider':
-        # Service providers see followups for cases they're involved with
-        followups = PoliceFollowUp.objects.filter(
-            case__counseling_sessions__counselor=request.user
-        ).distinct().select_related('case', 'officer').order_by('-date_updated')
-    else:
-        followups = PoliceFollowUp.objects.none()
-
-    # Search functionality
-    search_query = request.GET.get('search', '')
-    if search_query:
-        followups = followups.filter(
-            Q(case__id__icontains=search_query) |
-            Q(update_details__icontains=search_query) |
-            Q(officer__username__icontains=search_query)
-        )
-
-    # Pagination
-    paginator = Paginator(followups, 9)  # Show 9 followups per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
-    context = {
-        'page_obj': page_obj,
-        'search_query': search_query,
-        'now': now,
-    }
-    
-    return render(request, 'cases/police_followups.html', context)
 
 @login_required
 def case_documents(request):
