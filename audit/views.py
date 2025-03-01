@@ -64,7 +64,7 @@ def audit_logs(request):
 
 @login_required
 def export_audit_logs_excel(request):
-    if request.user.role != "law_enforcement":
+    if request.user.role != "officer":
         return redirect('dashboard')
 
     # Apply the same filters as the main view
@@ -111,7 +111,7 @@ LIGHT_PRIMARY = colors.HexColor('#8c85ff')  # Lighter shade for backgrounds
 
 @login_required
 def export_audit_logs_pdf(request):
-    if request.user.role != "law_enforcement":
+    if request.user.role != "officer":
         return redirect('dashboard')
 
     # Apply filters (same as before)

@@ -103,7 +103,7 @@ def case_detail(request, case_id):
 
 @login_required
 def export_case_report_pdf(request):
-    if request.user.role not in ["law_enforcement", "provider"]:
+    if request.user.role != "officer":
         return redirect('dashboard')
 
     response = HttpResponse(content_type='application/pdf')
@@ -125,7 +125,7 @@ def export_case_report_pdf(request):
 
 @login_required
 def export_case_report_excel(request):
-    if request.user.role not in ["law_enforcement", "provider"]:
+    if request.user.role != "officer":
         return redirect('dashboard')
 
     cases = Case.objects.values("id", "status", "date_reported")
