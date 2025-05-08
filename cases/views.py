@@ -95,10 +95,10 @@ def case_statistics(request):
     total_cases = Case.objects.count()
     return render(request, 'cases/statistics.html', {"total_cases": total_cases})
 
-@login_required
-def case_detail(request, case_id):
-    case = get_object_or_404(Case, id=case_id)
-    return render(request, 'cases/case_detail.html', {'case': case})
+# @login_required
+# def case_detail(request, case_id):
+#     case = get_object_or_404(Case, id=case_id)
+#     return render(request, 'cases/case_detail.html', {'case': case})
 
 
 @login_required
@@ -417,15 +417,10 @@ def update_police_status(request, assignment_id):
 @login_required
 def police_followups(request, case_id):
     case = get_object_or_404(Case, id=case_id)
-    
-    # For law enforcement, show all assignments for this case
-    if request.user.role == 'law_enforcement':
-        assignments = LawEnforcementAssignment.objects.filter(case=case).order_by('-updated_at')
-    else:
-        # For other users, show limited information
-        assignments = LawEnforcementAssignment.objects.filter(case=case).order_by('-updated_at')
+    assignments = LawEnforcementAssignment.objects.filter(case=case).order_by('-updated_at')
     
     return render(request, 'cases/police_followups.html', {'case': case, 'assignments': assignments})
+
 @login_required
 def upload_case_document(request, case_id):
     case = get_object_or_404(Case, id=case_id)
